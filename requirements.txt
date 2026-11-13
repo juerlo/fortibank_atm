@@ -1,0 +1,11 @@
+# Core GUI framework
+Kivy==2.3.2
+Kivy-Garden==0.1.5
+
+# HTTP client for backend API (FortiBank ZTNA/SASE)
+requests==2.34.2
+
+# Build tooling (useful to pin for reproducible builds)
+pip==24.0
+setuptools==84.2.1
+wheel==0.48.0
