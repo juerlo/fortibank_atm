@@ -30,7 +30,7 @@
         valign: 'middle'
         text_size: self.size
 
-<BorderButton@Button>:
+<BorderButton@PushButton>:
     background_normal: ''
     canvas.after:
         Color:
@@ -51,20 +51,30 @@
     font_size: '20sp'
     bold: True
 
-<NumKey@BorderButton>:
+<NumKey@PushButton>:
+    background_normal: ''
     background_color: 0.925, 0.941, 0.945, 1
     color: 0.2, 0.2, 0.2, 1
     font_size: '26sp'
     bold: True
 
-<ClearKey@BorderButton>:
+<ClearKey@PushButton>:
+    background_normal: ''
     background_color: 0.902, 0.494, 0.133, 1
     color: 1, 1, 1, 1
     font_size: '18sp'
     bold: True
 
-<EnterKey@BorderButton>:
+<EnterKey@PushButton>:
+    background_normal: ''
     background_color: 0.153, 0.682, 0.376, 1
+    color: 1, 1, 1, 1
+    font_size: '18sp'
+    bold: True
+
+<PinCancelButton@PushButton>:
+    background_normal: ''
+    background_color: 0.91, 0.30, 0.24, 1
     color: 1, 1, 1, 1
     font_size: '18sp'
     bold: True
@@ -169,7 +179,7 @@
                 bold: True
                 color: 0.067, 0.067, 0.067, 1
                 size_hint: None, None
-                size: 250, 70
+                size: 300, 70
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -227,10 +237,10 @@
         AnchorLayout:
             size_hint_y: None
             height: 78
-            CancelButton:
+            PinCancelButton:
                 text: "CANCELAR OPERACIÓN"
                 size_hint: None, None
-                size: 260, 58
+                size: 320, 58
                 on_release: app.eject_card()
         Widget:
             size_hint_y: 1

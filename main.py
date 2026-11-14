@@ -20,6 +20,7 @@ from kivy.clock import Clock
 from kivy.animation import Animation
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
+from kivy.factory import Factory
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -120,6 +121,33 @@ class ScreenBase(Screen):
             pos=lambda *a: setattr(self._bg_rect, 'pos', self.pos),
             size=lambda *a: setattr(self._bg_rect, 'size', self.size),
         )
+
+
+class PushButton(Button):
+    """Button with a 3D drop shadow and a press/push effect."""
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self._shadow = None
+        self._normal_bg = None
+        with self.canvas.before:
+            Color(0, 0, 0, 0.35)
+            self._shadow = RoundedRectangle(pos=self.pos, size=self.size, radius=[8])
+        self.bind(pos=self._sync_shadow, size=self._sync_shadow, state=self._on_state)
+
+    def _sync_shadow(self, *a):
+        off = 1 if self.state == 'down' else 5
+        self._shadow.pos = (self.x, self.y - off)
+        self._shadow.size = self.size
+
+    def _on_state(self, *a):
+        if self._normal_bg is None:
+            self._normal_bg = tuple(self.background_color)
+        if self.state == 'down':
+            r, g, b, a = self._normal_bg
+            self.background_color = (r * 0.7, g * 0.7, b * 0.7, a)
+        else:
+            self.background_color = self._normal_bg
+        self._sync_shadow()
 
 
 class ScreenInsert(ScreenBase):
@@ -452,6 +480,7 @@ class FortiBankApp(App):
         self.snd_beep = SoundLoader.load("beep.wav") if os.path.exists("beep.wav") else None
         Clock.schedule_interval(self.update_clock, 1)
         self.update_clock(0)
+        Factory.register('PushButton', cls=PushButton)
         return Manager()
 
     def update_clock(self, dt):
