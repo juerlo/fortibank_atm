@@ -439,6 +439,7 @@ class FortiBankApp(App):
         anim.play_insert(card)
 
     def eject_card(self):
+        self._clear_bills()
         anim = self.root.get_screen('cardanim')
         anim.play_eject()
 
@@ -497,7 +498,19 @@ class FortiBankApp(App):
             self.timer_event.cancel()
         self._show_result(False, "Error de conexión ZTNA", {"iso_request": err_msg, "iso_response": ""})
 
+    def _clear_bills(self):
+        """Remove any bill images left in the dispensing area."""
+        try:
+            disp = self.root.get_screen('dispensing')
+            area = disp.ids.bill_area
+            for child in list(area.children):
+                if isinstance(child, Image):
+                    area.remove_widget(child)
+        except Exception:
+            pass
+
     def _dispense_bills(self, amount, data):
+        self._clear_bills()
         self.go_to('dispensing')
         disp = self.root.get_screen('dispensing')
         disp.ids.disp_title.text = "Contando billetes..."
@@ -519,9 +532,7 @@ class FortiBankApp(App):
         area = disp.ids.bill_area
 
         # Clear any previous bills from the bill area
-        for child in list(area.children):
-            if isinstance(child, Image):
-                area.remove_widget(child)
+        self._clear_bills()
 
         remaining = amount
         bills = []
@@ -569,6 +580,7 @@ class FortiBankApp(App):
         )
 
     def _show_result(self, success, title, data):
+        self._clear_bills()
         self.go_to('result')
         res = self.root.get_screen('result')
         if success:
