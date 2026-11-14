@@ -578,7 +578,7 @@ class FortiBankApp(App):
                 area.add_widget(bill)
                 # Position relative to bill_area using pos_hint
                 start_y = 0.9  # Start near the top
-                target_y = max(0.1, 0.5 - (idx * 0.08))  # Move down to middle
+                target_y = min(0.92, max(0.12, (0.5 - (idx * 0.08)) * 1.2))  # 20% higher resting spot
                 bill.pos_hint = {'center_x': 0.5, 'top': start_y}
                 anim = Animation(
                     opacity=1,
