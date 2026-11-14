@@ -1,7 +1,7 @@
 import os
 import threading
 import logging
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import requests
 
 # Suppress urllib3/requests DEBUG logging to prevent Kivy logger recursion
@@ -484,7 +484,13 @@ class FortiBankApp(App):
         return Manager()
 
     def update_clock(self, dt):
-        self.clock_text = datetime.now().strftime("%I:%M %p")
+        try:
+            from zoneinfo import ZoneInfo
+            now = datetime.now(ZoneInfo("America/Mexico_City"))
+        except Exception:
+            # Mexico City is UTC-6 year-round (no DST since 2022)
+            now = datetime.now(timezone(timedelta(hours=-6)))
+        self.clock_text = now.strftime("%I:%M %p")
 
     def _beep(self):
         if self.snd_beep:
