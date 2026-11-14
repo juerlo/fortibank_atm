@@ -445,6 +445,11 @@ class FortiBankApp(App):
             except Exception:
                 pass
 
+    def _eject_beeps(self):
+        # three beeps when the card is being withdrawn
+        for i in range(3):
+            Clock.schedule_once(lambda dt: self._beep(), 0.4 * i)
+
     def go_to(self, screen_name, beep=True):
         if beep:
             self._beep()
@@ -457,10 +462,10 @@ class FortiBankApp(App):
         anim.play_insert(card)
 
     def eject_card(self):
-        self._beep()
         self._clear_bills()
         anim = self.root.get_screen('cardanim')
         anim.play_eject()
+        self._eject_beeps()
 
     def start_transaction(self, amount, is_withdrawal):
         self._beep()
