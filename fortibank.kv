@@ -65,6 +65,13 @@
     font_size: '18sp'
     bold: True
 
+<MenuButton@Button>:
+    background_normal: ''
+    background_color: 1, 1, 1, 0.10
+    color: 1, 1, 1, 1
+    font_size: '22sp'
+    bold: True
+
 <ScreenBase>:
     canvas.before:
         Color:
@@ -241,11 +248,13 @@
                 height: 50
             GridLayout:
                 cols: 2
-                spacing: 30
-                AtmButton:
+                spacing: 20
+                size_hint_y: None
+                height: 180
+                MenuButton:
                     text: "RETIRO DE EFECTIVO"
                     on_release: app.go_to('amount')
-                AtmButton:
+                MenuButton:
                     text: "CONSULTA DE SALDO"
                     on_release: app.start_transaction(0, False)
             CancelButton:
