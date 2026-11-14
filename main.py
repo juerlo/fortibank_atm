@@ -505,9 +505,9 @@ class FortiBankApp(App):
                 pass
 
     def _eject_beeps(self):
-        # four fast beeps synchronized to the start of the card-out animation
-        for i in range(4):
-            Clock.schedule_once(lambda dt: self._beep(), 0.18 * i)
+        # three beeps, starting 2 seconds after the card is being withdrawn
+        for i in range(3):
+            Clock.schedule_once(lambda dt: self._beep(), 2.0 + 0.4 * i)
 
     def go_to(self, screen_name, beep=True):
         if beep:
