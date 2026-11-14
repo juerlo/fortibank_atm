@@ -220,10 +220,12 @@ class ScreenPin(ScreenBase):
 
     def append_nip(self, digit):
         if len(self.nip) < 4:
+            App.get_running_app()._beep()
             self.nip += digit
             self._refresh_nip()
 
     def clear_nip(self):
+        App.get_running_app()._beep()
         self.nip = ""
         self._refresh_nip()
 
@@ -383,7 +385,7 @@ class ScreenCardAnim(Screen):
         h = Animation(y=-150, duration=1.05, t='linear')        # 30-60% (hold)
         b = Animation(y=720, duration=1.4, t='in_out_cubic')    # 60-100%
         seq = a + h + b
-        seq.bind(on_complete=lambda *args: app.go_to('pin'))
+        seq.bind(on_complete=lambda *args: app.go_to('pin', beep=False))
         seq.start(self.card)
 
     def play_eject(self):
@@ -401,7 +403,7 @@ class ScreenCardAnim(Screen):
         def _done(*args):
             app.current_card = None
             app.current_nip = ""
-            app.go_to('insert')
+            app.go_to('insert', beep=False)
 
         seq = a + h + b
         seq.bind(on_complete=_done)
@@ -423,6 +425,7 @@ class FortiBankApp(App):
         self.kv_file = "fortibank.kv"
         self.snd_insert = SoundLoader.load("atm_insertion.mp3") if os.path.exists("atm_insertion.mp3") else None
         self.snd_count = SoundLoader.load("counting.mp3") if os.path.exists("counting.mp3") else None
+        self.snd_beep = SoundLoader.load("beep.wav") if os.path.exists("beep.wav") else None
         Clock.schedule_interval(self.update_clock, 1)
         self.update_clock(0)
         return Manager()
@@ -430,21 +433,34 @@ class FortiBankApp(App):
     def update_clock(self, dt):
         self.clock_text = datetime.now().strftime("%I:%M %p")
 
-    def go_to(self, screen_name):
+    def _beep(self):
+        if self.snd_beep:
+            try:
+                self.snd_beep.stop()
+                self.snd_beep.play()
+            except Exception:
+                pass
+
+    def go_to(self, screen_name, beep=True):
+        if beep:
+            self._beep()
         self.root.current = screen_name
 
     def insert_card(self, card):
+        self._beep()
         self.current_card = card
         anim = self.root.get_screen('cardanim')
         anim.play_insert(card)
 
     def eject_card(self):
+        self._beep()
         self._clear_bills()
         anim = self.root.get_screen('cardanim')
         anim.play_eject()
 
     def start_transaction(self, amount, is_withdrawal):
-        self.go_to('processing')
+        self._beep()
+        self.go_to('processing', beep=False)
         proc_screen = self.root.get_screen('processing')
         proc_screen.ids.proc_msg.text = (
             "Procesando transacción segura..." if is_withdrawal else "Consultando su saldo..."
