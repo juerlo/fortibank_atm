@@ -34,10 +34,10 @@
     background_normal: ''
     canvas.after:
         Color:
-            rgba: 1, 1, 1, 0.85
+            rgba: 1, 1, 1, 0.40
         Line:
             rounded_rectangle: self.x, self.y, self.width, self.height, 8
-            width: 1.5
+            width: 1
 
 <AtmButton@BorderButton>:
     background_color: 0.12, 0.35, 0.58, 1
@@ -87,10 +87,10 @@
     bold: True
     canvas.after:
         Color:
-            rgba: 1, 1, 1, 1
+            rgba: 1, 1, 1, 0.50
         Line:
             rounded_rectangle: self.x, self.y, self.width, self.height, 8
-            width: 2
+            width: 1.5
 
 <ScreenBase>:
     canvas.before:
@@ -266,6 +266,9 @@
                 bold: True
                 size_hint_y: None
                 height: 50
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
             AnchorLayout:
                 size_hint_y: None
                 height: 90
@@ -300,33 +303,41 @@
                 bold: True
                 size_hint_y: None
                 height: 45
-            GridLayout:
-                cols: 2
-                spacing: 15
-                AtmButton:
-                    text: "$ 100 MXN"
-                    on_release: app.start_transaction(100, True)
-                AtmButton:
-                    text: "$ 200 MXN"
-                    on_release: app.start_transaction(200, True)
-                AtmButton:
-                    text: "$ 500 MXN"
-                    on_release: app.start_transaction(500, True)
-                AtmButton:
-                    text: "$ 1,000 MXN"
-                    on_release: app.start_transaction(1000, True)
-                AtmButton:
-                    text: "$ 2,000 MXN"
-                    on_release: app.start_transaction(2000, True)
-                AtmButton:
-                    text: "$ 3,000 MXN"
-                    on_release: app.start_transaction(3000, True)
-                AtmButton:
-                    text: "$ 5,000 MXN"
-                    on_release: app.start_transaction(5000, True)
-                CancelButton:
-                    text: "REGRESAR"
-                    on_release: app.go_to('menu')
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
+            AnchorLayout:
+                size_hint_y: None
+                height: 340
+                GridLayout:
+                    cols: 2
+                    spacing: 15
+                    size_hint: None, None
+                    size: 700, 340
+                    AtmButton:
+                        text: "$ 100 MXN"
+                        on_release: app.start_transaction(100, True)
+                    AtmButton:
+                        text: "$ 200 MXN"
+                        on_release: app.start_transaction(200, True)
+                    AtmButton:
+                        text: "$ 500 MXN"
+                        on_release: app.start_transaction(500, True)
+                    AtmButton:
+                        text: "$ 1,000 MXN"
+                        on_release: app.start_transaction(1000, True)
+                    AtmButton:
+                        text: "$ 2,000 MXN"
+                        on_release: app.start_transaction(2000, True)
+                    AtmButton:
+                        text: "$ 3,000 MXN"
+                        on_release: app.start_transaction(3000, True)
+                    AtmButton:
+                        text: "$ 5,000 MXN"
+                        on_release: app.start_transaction(5000, True)
+                    CancelButton:
+                        text: "REGRESAR"
+                        on_release: app.go_to('menu')
 
 <ScreenProcessing>:
     BoxLayout:
