@@ -266,17 +266,20 @@
                 bold: True
                 size_hint_y: None
                 height: 50
-            GridLayout:
-                cols: 2
-                spacing: 20
+            AnchorLayout:
                 size_hint_y: None
-                height: 180
-                MenuButton:
-                    text: "Retiro de Efectivo"
-                    on_release: app.go_to('amount')
-                MenuButton:
-                    text: "Consulta de Saldo"
-                    on_release: app.start_transaction(0, False)
+                height: 90
+                GridLayout:
+                    cols: 2
+                    spacing: 20
+                    size_hint: None, None
+                    size: 695, 90
+                    MenuButton:
+                        text: "RETIRO DE EFECTIVO"
+                        on_release: app.go_to('amount')
+                    MenuButton:
+                        text: "CONSULTA DE SALDO"
+                        on_release: app.start_transaction(0, False)
             CancelButton:
                 text: "CANCELAR Y RETIRAR TARJETA"
                 size_hint_y: None
