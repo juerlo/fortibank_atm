@@ -266,7 +266,28 @@ class ScreenCardAnim(Screen):
 
     def __init__(self, **kw):
         super().__init__(**kw)
+        self._flash_event = None
+        self._slot_on = True
         self._build_anim()
+
+    def _toggle_slot(self, dt):
+        self._slot_on = not self._slot_on
+        if hasattr(self, 'slot_color'):
+            self.slot_color.a = 1.0 if self._slot_on else 0.15
+
+    def _start_flash(self):
+        self._stop_flash()
+        self._slot_on = True
+        if hasattr(self, 'slot_color'):
+            self.slot_color.a = 1.0
+        self._flash_event = Clock.schedule_interval(self._toggle_slot, 0.25)
+
+    def _stop_flash(self):
+        if self._flash_event:
+            self._flash_event.cancel()
+            self._flash_event = None
+        if hasattr(self, 'slot_color'):
+            self.slot_color.a = 1.0
 
     def _build_anim(self):
         root = FloatLayout()
@@ -291,7 +312,7 @@ class ScreenCardAnim(Screen):
         with slot.canvas:
             Color(0.02, 0.02, 0.02, 1)
             RoundedRectangle(pos=(312, 285), size=(400, 30), radius=[10])
-            Color(0.18, 0.80, 0.44, 1)
+            self.slot_color = Color(0.18, 0.80, 0.44, 1)
             Rectangle(pos=(320, 298), size=(384, 4))
             Color(0.20, 0.20, 0.20, 1)
             Line(rounded_rectangle=(312, 285, 400, 30, 10), width=4)
@@ -379,13 +400,14 @@ class ScreenCardAnim(Screen):
 
         app = App.get_running_app()
         app.go_to('cardanim')
+        self._start_flash()
         Clock.schedule_once(lambda dt: app.snd_insert and app.snd_insert.play(), 0.3)
 
         a = Animation(y=-150, duration=1.05, t='in_out_cubic')  # 0-30%
         h = Animation(y=-150, duration=1.05, t='linear')        # 30-60% (hold)
         b = Animation(y=720, duration=1.4, t='in_out_cubic')    # 60-100%
         seq = a + h + b
-        seq.bind(on_complete=lambda *args: app.go_to('pin', beep=False))
+        seq.bind(on_complete=lambda *args: (self._stop_flash(), app.go_to('pin', beep=False)))
         seq.start(self.card)
 
     def play_eject(self):
@@ -394,6 +416,7 @@ class ScreenCardAnim(Screen):
 
         app = App.get_running_app()
         app.go_to('cardanim')
+        self._start_flash()
         Clock.schedule_once(lambda dt: app.snd_insert and app.snd_insert.play(), 0.3)
 
         a = Animation(y=-150, duration=1.2, t='in_out_cubic')   # 0-30%
@@ -401,6 +424,7 @@ class ScreenCardAnim(Screen):
         b = Animation(y=-480, duration=1.6, t='in_out_cubic')   # 60-100%
 
         def _done(*args):
+            self._stop_flash()
             app.current_card = None
             app.current_nip = ""
             app.go_to('insert', beep=False)
