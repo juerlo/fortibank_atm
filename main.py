@@ -572,7 +572,7 @@ class FortiBankApp(App):
                 bill = Image(
                     source=img_path,
                     size_hint=(None, None),
-                    size=(280, 119),
+                    size=(364, 155),
                     opacity=0
                 )
                 area.add_widget(bill)
