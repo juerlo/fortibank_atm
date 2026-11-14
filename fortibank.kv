@@ -30,43 +30,46 @@
         valign: 'middle'
         text_size: self.size
 
-<AtmButton@Button>:
+<BorderButton@Button>:
     background_normal: ''
+    canvas.after:
+        Color:
+            rgba: 1, 1, 1, 0.85
+        Line:
+            rounded_rectangle: self.x, self.y, self.width, self.height, 8
+            width: 1.5
+
+<AtmButton@BorderButton>:
     background_color: 0.12, 0.35, 0.58, 1
     color: 1, 1, 1, 1
     font_size: '22sp'
     bold: True
 
-<CancelButton@Button>:
-    background_normal: ''
+<CancelButton@BorderButton>:
     background_color: 0.91, 0.30, 0.24, 1
     color: 1, 1, 1, 1
     font_size: '20sp'
     bold: True
 
-<NumKey@Button>:
-    background_normal: ''
+<NumKey@BorderButton>:
     background_color: 0.925, 0.941, 0.945, 1
     color: 0.2, 0.2, 0.2, 1
     font_size: '26sp'
     bold: True
 
-<ClearKey@Button>:
-    background_normal: ''
+<ClearKey@BorderButton>:
     background_color: 0.902, 0.494, 0.133, 1
     color: 1, 1, 1, 1
     font_size: '18sp'
     bold: True
 
-<EnterKey@Button>:
-    background_normal: ''
+<EnterKey@BorderButton>:
     background_color: 0.153, 0.682, 0.376, 1
     color: 1, 1, 1, 1
     font_size: '18sp'
     bold: True
 
-<MenuButton@Button>:
-    background_normal: ''
+<MenuButton@BorderButton>:
     background_color: 1, 1, 1, 0.10
     color: 1, 1, 1, 1
     font_size: '22sp'
