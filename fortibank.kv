@@ -79,11 +79,18 @@
     font_size: '18sp'
     bold: True
 
-<MenuButton@BorderButton>:
+<MenuButton@PushButton>:
+    background_normal: ''
     background_color: 1, 1, 1, 0.10
     color: 1, 1, 1, 1
     font_size: '22sp'
     bold: True
+    canvas.after:
+        Color:
+            rgba: 1, 1, 1, 1
+        Line:
+            rounded_rectangle: self.x, self.y, self.width, self.height, 8
+            width: 2
 
 <ScreenBase>:
     canvas.before:
@@ -265,10 +272,10 @@
                 size_hint_y: None
                 height: 180
                 MenuButton:
-                    text: "RETIRO DE EFECTIVO"
+                    text: "Retiro de Efectivo"
                     on_release: app.go_to('amount')
                 MenuButton:
-                    text: "CONSULTA DE SALDO"
+                    text: "Consulta de Saldo"
                     on_release: app.start_transaction(0, False)
             CancelButton:
                 text: "CANCELAR Y RETIRAR TARJETA"
