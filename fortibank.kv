@@ -260,6 +260,8 @@
             orientation: 'vertical'
             padding: [80, 40]
             spacing: 30
+            Widget:
+                size_hint_y: 1
             Label:
                 text: "Seleccione una operación"
                 font_size: '32sp'
@@ -283,11 +285,16 @@
                     MenuButton:
                         text: "CONSULTA DE SALDO"
                         on_release: app.start_transaction(0, False)
-            CancelButton:
-                text: "CANCELAR Y RETIRAR TARJETA"
+            AnchorLayout:
                 size_hint_y: None
-                height: 65
-                on_release: app.eject_card()
+                height: 80
+                CancelButton:
+                    text: "CANCELAR Y RETIRAR TARJETA"
+                    size_hint: None, None
+                    size: 432, 60
+                    on_release: app.eject_card()
+            Widget:
+                size_hint_y: 1
 
 <ScreenAmount>:
     BoxLayout:
