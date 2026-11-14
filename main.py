@@ -435,6 +435,10 @@ class FortiBankApp(App):
 
     def _beep(self):
         if self.snd_beep:
+            now = Clock.get_boottime()
+            if now - getattr(self, "_last_beep", 0) < 0.12:
+                return
+            self._last_beep = now
             try:
                 self.snd_beep.stop()
                 self.snd_beep.play()
@@ -527,7 +531,7 @@ class FortiBankApp(App):
 
     def _dispense_bills(self, amount, data):
         self._clear_bills()
-        self.go_to('dispensing')
+        self.go_to('dispensing', beep=False)
         disp = self.root.get_screen('dispensing')
         disp.ids.disp_title.text = "Contando billetes..."
         disp.ids.disp_sub.text = "Por favor espere"
@@ -597,7 +601,7 @@ class FortiBankApp(App):
 
     def _show_result(self, success, title, data):
         self._clear_bills()
-        self.go_to('result')
+        self.go_to('result', beep=False)
         res = self.root.get_screen('result')
         if success:
             res.ids.res_title.text = title
