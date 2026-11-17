@@ -1,0 +1,20 @@
+[Unit]
+Description=FortiBank ATM application
+After=fortibank-x.service
+Requires=fortibank-x.service
+
+[Service]
+Type=simple
+User=orangepi
+Environment=DISPLAY=:2
+WorkingDirectory=/home/orangepi/fortibank_atm
+ExecStartPre=/bin/sleep 3
+# Pin the HDMI output to the panel's native 1024x600 mode so the fixed-size
+# Kivy window fills the screen (no black borders / cropped UI on 1920x1080).
+ExecStartPre=-/usr/bin/xrandr --output HDMI-1 --mode 1024x600
+ExecStart=/home/orangepi/fortibank_atm/.venv/bin/python main.py
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
