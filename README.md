@@ -1,4 +1,4 @@
-# FortiBank ATM
+﻿# FortiBank ATM
 
 A desktop ATM simulator built with **Python** and **Kivy**. It mimics a full ATM workflow: card insertion, PIN entry, menu navigation, amount selection, transaction processing, bill dispensing animation, and result display. The frontend communicates with a backend API over HTTP.
 
@@ -6,14 +6,14 @@ A desktop ATM simulator built with **Python** and **Kivy**. It mimics a full ATM
 
 ## Features
 
-- **Card selection** — Choose from preset VISA and Mastercard cards with animated carousel
-- **PIN entry** — 4-digit PIN input screen
-- **Main menu** — Withdrawal or balance inquiry
-- **Amount selection** — Choose withdrawal amount
-- **Processing screen** — Simulated transaction communication with backend
-- **Bill dispensing animation** — Animated bills (500, 200, 100, 50) with sound effects
-- **Result screen** — Success/decline message with available balance and ISO traffic info
-- **Card ejection** — Return to start or eject card
+- **Card selection** â€” Choose from preset VISA and Mastercard cards with animated carousel
+- **PIN entry** â€” 4-digit PIN input screen
+- **Main menu** â€” Withdrawal or balance inquiry
+- **Amount selection** â€” Choose withdrawal amount
+- **Processing screen** â€” Simulated transaction communication with backend
+- **Bill dispensing animation** â€” Animated bills (500, 200, 100, 50) with sound effects
+- **Result screen** â€” Success/decline message with available balance and ISO traffic info
+- **Card ejection** â€” Return to start or eject card
 
 ---
 
@@ -32,21 +32,21 @@ A desktop ATM simulator built with **Python** and **Kivy**. It mimics a full ATM
 
 ```
 fortibank_atm/                    # Project root (Pattern A: everything in one folder)
-├── .venv/                        # Virtual environment (gitignored — do not commit)
-├── .gitignore                    # Git ignore rules
-├── requirements.txt              # Pinned Python dependencies
-├── README.md                     # This file
-├── main.py                       # Application entry point and logic
-├── fortibank.kv                  # Kivy UI language file (screens and widgets)
-├── 50.png                        # Bill image (50 denomination)
-├── 100.png                       # Bill image (100 denomination)
-├── 200.png                       # Bill image (200 denomination)
-├── 500.png                       # Bill image (500 denomination)
-├── mastercard.png                # Mastercard brand image
-├── visa.png                      # VISA brand image
-├── atm_insertion.mp3             # Card insertion sound
-├── counting.mp3                  # Bill counting sound
-└── __pycache__/                  # Python bytecode cache (gitignored)
+â”œâ”€â”€ .venv/                        # Virtual environment (gitignored â€” do not commit)
+â”œâ”€â”€ .gitignore                    # Git ignore rules
+â”œâ”€â”€ requirements.txt              # Pinned Python dependencies
+â”œâ”€â”€ README.md                     # This file
+â”œâ”€â”€ main.py                       # Application entry point and logic
+â”œâ”€â”€ fortibank.kv                  # Kivy UI language file (screens and widgets)
+â”œâ”€â”€ 50.png                        # Bill image (50 denomination)
+â”œâ”€â”€ 100.png                       # Bill image (100 denomination)
+â”œâ”€â”€ 200.png                       # Bill image (200 denomination)
+â”œâ”€â”€ 500.png                       # Bill image (500 denomination)
+â”œâ”€â”€ mastercard.png                # Mastercard brand image
+â”œâ”€â”€ visa.png                      # VISA brand image
+â”œâ”€â”€ atm_insertion.mp3             # Card insertion sound
+â”œâ”€â”€ counting.mp3                  # Bill counting sound
+â””â”€â”€ __pycache__/                  # Python bytecode cache (gitignored)
 ```
 
 ---
@@ -55,7 +55,7 @@ fortibank_atm/                    # Project root (Pattern A: everything in one f
 
 - Python 3.12 (recommended) or Python 3.10+
 - `pip` and `venv` module
-- A backend API running at `http://127.0.0.1:8000/api/withdraw` (configurable via environment variable — see Configuration below)
+- A backend API running at `http://127.0.0.1:8000/api/withdraw` (configurable via environment variable â€” see Configuration below)
 
 ---
 
@@ -87,7 +87,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-The app opens a fixed-size window (1024×600, non-resizable).
+The app opens a fixed-size window (1024Ã—600, non-resizable).
 
 ---
 
@@ -144,3 +144,21 @@ deactivate
 - This is the **frontend client** only. It expects a separate backend service to handle withdrawal/balance logic and return JSON responses with fields like `status`, `detail`, `remaining_balance`, `iso_request`, and `iso_response`.
 - Bill images (`50.png`, `100.png`, `200.png`, `500.png`) must be present in the project root for the dispensing animation to display correctly.
 - Sound files (`atm_insertion.mp3`, `counting.mp3`) are loaded via Kivy's `SoundLoader`.
+---
+
+## HDMI Audio Fix (Orange Pi Zero 3 / Allwinner H618)
+
+HDMI audio on the Orange Pi Zero 3 running Ubuntu 24.04 (vendor kernel
+`6.1.31-sun50iw9`) does not work out of the box: the AHUB I2S1 bit clock runs at
+half speed (24 kHz instead of 48 kHz), the Device Tree is missing
+`soundcard-mach,mclk-fs = <0x100>`, and the default ALSA card is the analog codec
+(card 0) rather than HDMI (card 2). The full fix — DTB patch, ALSA `dmix`
+routing, the `AHUB_I2S1_CLKD` register-watcher daemon, and the SDL2 env drop-in —
+is documented in **[docs/HDMI_AUDIO_FIX.md](docs/HDMI_AUDIO_FIX.md)**.
+
+---
+
+## Deployment (Orange Pi Zero 3)
+
+The systemd units, launcher, ALSA config, and the audio-fix daemon used on the
+kiosk live in **[deploy/](deploy/)** (see `deploy/README.md` for install steps).

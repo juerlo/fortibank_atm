@@ -1,8 +1,8 @@
 ﻿# Deployment: systemd units & config
 
 These files are installed on the Orange Pi Zero 3 (Ubuntu Server 24.04) to run the
-FortiBank ATM kiosk. They are **not** part of the Python runtime; they configure
-how the app, Xorg, and audio are launched on the device.
+FortiBank ATM kiosk. They are **not** part of the Python runtime; they configure how
+the app, Xorg, HDMI audio, and the GPU are set up on the device.
 
 ## Files
 
@@ -12,14 +12,20 @@ how the app, Xorg, and audio are launched on the device.
 | `fortibank-app.service` | `/etc/systemd/system/` | The Kivy ATM app |
 | `fortibank-vnc.service` | `/etc/systemd/system/` | x11vnc mirror of `:2` (port 5900) |
 | `start_atm.sh` | `/home/orangepi/fortibank_atm/` | Launcher: waits for X, sets 1024x600, runs app |
-| `asound.conf` | `/etc/asound.conf` | Default audio -> HDMI (card 2), 48 kHz |
+| `asound.conf` | `/etc/asound.conf` | Default ALSA -> HDMI card 2 via dmix @ 48 kHz |
+| `h618-hdmi-audio-fix.service` | `/etc/systemd/system/` | Daemon enforcing AHUB I2S1 BCLKDIV = 0x7 |
+| `fix_h618_hdmi_audio.py` | `/usr/local/bin/` | The BCLKDIV watcher daemon |
+| `patch-dtb-audio.sh` | (run once) | Sets `mclk-fs = 0x100` in the DTB |
+
+See [`docs/HDMI_AUDIO_FIX.md`](../docs/HDMI_AUDIO_FIX.md) for the full HDMI audio
+walkthrough (root causes, register addresses, verification, rollback).
 
 ## Fixes applied
 
 ### 1. Display (1024x600, no black borders)
 The HDMI panel is natively **1024x600**, but Xorg defaulted to 1920x1080. Because the
-Kivy UI is a fixed 1024x600 layout with absolute-sized widgets, it rendered as a
-small window with large black borders. `start_atm.sh` runs
+Kivy UI is a fixed 1024x600 layout with absolute-sized widgets, it rendered as a small
+window with large black borders. `start_atm.sh` runs
 `xrandr --output HDMI-1 --mode 1024x600` before launching the app.
 
 ### 2. Boot auto-start (blank screen)
@@ -37,24 +43,44 @@ Fixed by `sudo usermod -aG render orangepi` and adding
 `SupplementaryGroups=video render` to `fortibank-app.service`.
 Verified: `OpenGL renderer: Mali-G31 (Panfrost)`.
 
-### 4. Audio (48 kHz)
-The app WAV/MP3 assets are 44.1 kHz; HDMI audio paths often only lock to 48 kHz.
-`/etc/asound.conf` routes the default PCM to HDMI (card 2) through a `plug` at 48 kHz.
-Note: HDMI audio on the current QDtech panel still does not produce sound on Ubuntu
-(the panel EDID audio block is malformed and the dw-hdmi path differs from Windows);
-this config is correct and ready for a compliant sink / the analog or USB output.
+### 4. HDMI audio (48 kHz)
+HDMI audio on the H618 fails out of the box due to a half-speed I2S1 bit clock, a
+missing `mclk-fs` in the DTB, and the wrong default sound card. Fixed by:
+- Patching the DTB (`soundcard-mach,mclk-fs = <0x100>`) via `patch-dtb-audio.sh`.
+- Routing default ALSA through `dmix` on `hw:2,0` @ 48 kHz (`asound.conf`).
+- Running `h618-hdmi-audio-fix.service` to keep BCLKDIV = 0x7 (`fix_h618_hdmi_audio.py`).
+- Forcing SDL2/Kivy to the ALSA default via a drop-in
+  (`fortibank-app.service.d/audio.conf`: `SDL_AUDIODRIVER=alsa`, `AUDIODEV=default`).
+See `docs/HDMI_AUDIO_FIX.md` for the full procedure.
 
 ## Install
 
 ```bash
 # On the Orange Pi
-sudo cp deploy/fortibank-x.service   /etc/systemd/system/
-sudo cp deploy/fortibank-app.service /etc/systemd/system/
-sudo cp deploy/fortibank-vnc.service /etc/systemd/system/
-sudo cp deploy/start_atm.sh          /home/orangepi/fortibank_atm/
-sudo chmod +x                        /home/orangepi/fortibank_atm/start_atm.sh
-sudo cp deploy/asound.conf           /etc/asound.conf
+sudo cp deploy/fortibank-x.service           /etc/systemd/system/
+sudo cp deploy/fortibank-app.service         /etc/systemd/system/
+sudo cp deploy/fortibank-vnc.service         /etc/systemd/system/
+sudo cp deploy/h618-hdmi-audio-fix.service   /etc/systemd/system/
+sudo cp deploy/start_atm.sh                  /home/orangepi/fortibank_atm/
+sudo chmod +x                                /home/orangepi/fortibank_atm/start_atm.sh
+sudo cp deploy/asound.conf                   /etc/asound.conf
+sudo cp deploy/fix_h618_hdmi_audio.py        /usr/local/bin/
+sudo chmod +x                                /usr/local/bin/fix_h618_hdmi_audio.py
+
+# DTB audio patch (one-time)
+sudo apt-get install -y device-tree-compiler
+sudo bash deploy/patch-dtb-audio.sh
+
+# SDL2 audio env for the app service
+sudo mkdir -p /etc/systemd/system/fortibank-app.service.d
+sudo tee /etc/systemd/system/fortibank-app.service.d/audio.conf > /dev/null << 'EOF'
+[Service]
+Environment="SDL_AUDIODRIVER=alsa"
+Environment="AUDIODEV=default"
+EOF
+
+# Groups + units
 sudo usermod -aG render orangepi
 sudo systemctl daemon-reload
-sudo systemctl enable --now fortibank-x fortibank-app fortibank-vnc
+sudo systemctl enable --now fortibank-x fortibank-app fortibank-vnc h618-hdmi-audio-fix
 ```

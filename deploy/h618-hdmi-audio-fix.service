@@ -1,0 +1,12 @@
+﻿[Unit]
+Description=Fix Allwinner H618 AHUB I2S1 BCLKDIV for 48kHz HDMI Audio
+Before=fortibank-app.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /usr/local/bin/fix_h618_hdmi_audio.py
+Restart=always
+RestartSec=1
+
+[Install]
+WantedBy=multi-user.target
