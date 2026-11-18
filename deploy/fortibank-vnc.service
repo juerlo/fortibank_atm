@@ -1,0 +1,14 @@
+﻿[Unit]
+Description=FortiBank VNC mirror of :2 (port 5900)
+After=fortibank-x.service
+Requires=fortibank-x.service
+
+[Service]
+Type=simple
+ExecStartPre=/bin/sleep 3
+ExecStart=/usr/bin/x11vnc -display :2 -forever -nopw -rfbport 5900 -logfile /var/log/fortibank-vnc.log
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

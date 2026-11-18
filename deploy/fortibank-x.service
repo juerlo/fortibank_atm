@@ -1,0 +1,13 @@
+﻿[Unit]
+Description=FortiBank Xorg on HDMI (:2, modesetting + glamor)
+Before=multi-user.target
+Conflicts=display-manager.service
+
+[Service]
+Type=simple
+ExecStart=/usr/lib/xorg/Xorg :2 -config /etc/X11/xorg_modesetting.conf -ac -noreset -sharevts -novtswitch -logfile /var/log/fortibank-xorg.log
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
