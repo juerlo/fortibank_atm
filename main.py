@@ -22,7 +22,7 @@ Config.set('graphics', 'resizable', '0')
 Config.set('graphics', 'maxfps', '60')
 
 from kivy.app import App
-from kivy.clock import Clock
+from kivy.clock import Clock, mainthread
 from kivy.animation import Animation
 from kivy.core.audio import SoundLoader
 from kivy.properties import StringProperty
@@ -835,7 +835,7 @@ class FortiBankApp(App):
             scr.msg = ""
         elif mode == 'confirm':
             if pin == scr.temp_pin:
-                self.settings.set('admin_pin', pin)
+                self.settings.set('admin_pin', pin, persist=False)
                 self.open_admin_menu()
             else:
                 scr.mode = 'new'
@@ -847,6 +847,7 @@ class FortiBankApp(App):
         self._refresh_admin()
 
     def close_admin(self):
+        self.settings.save()
         self.go_to('insert', beep=False)
 
     def open_admin_ip(self):
@@ -858,7 +859,7 @@ class FortiBankApp(App):
     def handle_admin_ip(self, ip):
         ip = ip.strip()
         if self._valid_ip(ip):
-            self.settings.set('backend_ip', ip)
+            self.settings.set('backend_ip', ip, persist=False)
             self._refresh_admin()
             self.open_admin_menu()
         else:
@@ -868,7 +869,7 @@ class FortiBankApp(App):
 
     def toggle_language(self):
         new_lang = 'en' if self.settings.language == 'es' else 'es'
-        self.settings.set('language', new_lang)
+        self.settings.set('language', new_lang, persist=False)
         self._apply_language()
         self._refresh_admin()
 
@@ -877,8 +878,36 @@ class FortiBankApp(App):
             new_tz = 'America/New_York'
         else:
             new_tz = 'America/Mexico_City'
-        self.settings.set('timezone', new_tz)
+        self.settings.set('timezone', new_tz, persist=False)
         self._refresh_admin()
+
+    def test_backend(self):
+        self._set_admin_status(self.t("admin_testing"), None)
+        threading.Thread(target=self._do_test_backend, daemon=True).start()
+
+    def _do_test_backend(self):
+        url = "http://{0}:8000/api/withdraw".format(self.settings.backend_ip)
+        try:
+            r = requests.get(url, timeout=4)
+            if r.status_code < 500:
+                self._set_admin_status(self.t("admin_test_ok"), True)
+            else:
+                self._set_admin_status(self.t("admin_test_http") % r.status_code, False)
+        except Exception as e:
+            self._set_admin_status(self.t("admin_test_fail") % (type(e).__name__,), False)
+
+    @mainthread
+    def _set_admin_status(self, msg, ok=True):
+        scr = self.root.get_screen('adminmenu')
+        if 'admin_status' in scr.ids:
+            scr.ids.admin_status.text = msg
+            if ok is True:
+                col = (0.18, 0.80, 0.44, 1)
+            elif ok is False:
+                col = (0.91, 0.30, 0.24, 1)
+            else:
+                col = (0.95, 0.61, 0.07, 1)
+            scr.ids.admin_status.color = col
 
     @staticmethod
     def _valid_ip(ip):
@@ -893,12 +922,14 @@ class FortiBankApp(App):
         return True
 
     def do_reboot(self):
+        self.settings.save()
         try:
             subprocess.run(["sudo", "-n", "reboot"], check=False)
         except Exception:
             pass
 
     def do_poweroff(self):
+        self.settings.save()
         try:
             subprocess.run(["sudo", "-n", "poweroff"], check=False)
         except Exception:

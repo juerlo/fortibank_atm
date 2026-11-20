@@ -66,6 +66,11 @@ TRANSLATIONS = {
     "admin_ip_clear": ("BORRAR", "CLEAR"),
     "admin_ip_enter": ("ENTRAR", "ENTER"),
     "admin_ip_cancel": ("CANCELAR", "CANCEL"),
+    "admin_test_btn": ("PROBAR", "TEST"),
+    "admin_testing": ("Probando conexión...", "Testing connection..."),
+    "admin_test_ok": ("✓ Conexión OK", "✓ Connection OK"),
+    "admin_test_http": ("HTTP %s", "HTTP %s"),
+    "admin_test_fail": ("Sin conexión (%s)", "No connection (%s)"),
 }
 
 
@@ -107,9 +112,10 @@ class Settings:
     def get(self, key, default=None):
         return self.data.get(key, DEFAULTS.get(key, default))
 
-    def set(self, key, value):
+    def set(self, key, value, persist=True):
         self.data[key] = value
-        self.save()
+        if persist:
+            self.save()
 
     @property
     def language(self):

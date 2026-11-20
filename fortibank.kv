@@ -619,7 +619,7 @@
                 cols: 2
                 spacing: 12
                 size_hint_y: None
-                height: 130
+                height: 120
                 AtmButton:
                     id: admin_lang_btn
                     text: "Idioma: Español"
@@ -652,11 +652,27 @@
                     font_size: '22sp'
                     bold: True
                     on_release: app.open_admin_ip()
+                AtmButton:
+                    id: admin_test_btn
+                    text: "PROBAR"
+                    size_hint_x: None
+                    width: 120
+                    on_release: app.test_backend()
+            Label:
+                id: admin_status
+                text: ""
+                font_size: '16sp'
+                color: 0.95, 0.61, 0.07, 1
+                size_hint_y: None
+                height: 36
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
             GridLayout:
                 cols: 2
                 spacing: 12
                 size_hint_y: None
-                height: 190
+                height: 180
                 AtmButton:
                     id: admin_change_pin
                     text: "CAMBIAR NIP"

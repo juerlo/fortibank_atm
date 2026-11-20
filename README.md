@@ -117,12 +117,14 @@ The menu lets you configure:
 
 - **Language** — Español / English (translates the whole UI)
 - **Timezone** — Mexico City (`America/Mexico_City`) / Miami (`America/New_York`)
-- **Backend IP** — enter the host on an on-screen numeric keypad (0–9 and dot); used to build `http://<ip>:8000/api/withdraw`
+- **Backend IP** — enter the host on an on-screen numeric keypad (0–9 and dot); used to build `http://<ip>:8000/api/withdraw`. **TEST** checks the connection to the backend.
 - **Change PIN** — set a new 4-digit admin PIN (entered twice to confirm)
 - **Reboot** / **Power Off** — restart or shut down the device
 
-All settings are persisted to **`settings.txt`** next to `main.py` and reloaded on
-startup. `settings.txt` is gitignored because it stores the admin PIN.
+Changes are saved automatically when you close the menu (**CERRAR**) — there is no
+separate save button. All settings are persisted to **`settings.txt`** next to
+`main.py` and reloaded on startup. `settings.txt` is gitignored because it stores the
+admin PIN.
 
 ---
 
