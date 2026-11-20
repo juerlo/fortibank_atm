@@ -108,6 +108,24 @@ python main.py
 
 ---
 
+## Secret Admin Menu
+
+Tap the **"FortiBank ATM"** logo in the top-left of the header **5 times** to open
+the secret admin menu. You'll be asked for the admin PIN (default **0000**).
+
+The menu lets you configure:
+
+- **Language** — Español / English (translates the whole UI)
+- **Timezone** — Mexico City (`America/Mexico_City`) / Miami (`America/New_York`)
+- **Backend IP** — the host used to build `http://<ip>:8000/api/withdraw`
+- **Change PIN** — set a new 4-digit admin PIN (entered twice to confirm)
+- **Reboot** / **Power Off** — restart or shut down the device
+
+All settings are persisted to **`settings.txt`** next to `main.py` and reloaded on
+startup. `settings.txt` is gitignored because it stores the admin PIN.
+
+---
+
 ## Best Practices Followed
 
 - **Pattern A layout**: Virtual environment (`.venv/`) lives inside the project root so the entire project is self-contained.

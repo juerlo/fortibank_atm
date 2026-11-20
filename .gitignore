@@ -121,3 +121,6 @@ $RECYCLE.BIN/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Runtime settings (contains admin PIN and device-specific config)
+settings.txt

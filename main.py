@@ -1,7 +1,13 @@
 import os
 import threading
 import logging
+import subprocess
+import time
 from datetime import datetime, timezone, timedelta
+try:
+    from zoneinfo import ZoneInfo
+except Exception:  # pragma: no cover
+    ZoneInfo = None
 import requests
 
 # Suppress urllib3/requests DEBUG logging to prevent Kivy logger recursion
@@ -32,7 +38,10 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, RoundedRectangle, Rectangle, Line, PushMatrix, PopMatrix, Rotate
 from kivy.graphics.texture import Texture
 
-BACKEND_URL = os.environ.get("ATM_BACKEND_URL", "http://192.168.27.35:8000/api/withdraw")
+from settings import Settings, TRANSLATIONS, translate
+
+# Backend URL: env override wins, otherwise built from the saved backend IP.
+BACKEND_URL = os.environ.get("ATM_BACKEND_URL")
 
 CARDS = [
     {"num": "4591061418966700", "name": "Ernesto López", "brand": "VISA"},
@@ -462,6 +471,41 @@ class ScreenCardAnim(Screen):
         seq.start(self.card)
 
 
+class AdminPinScreen(ScreenBase):
+    mode = StringProperty("verify")
+    title = StringProperty("PIN de Administrador")
+    msg = StringProperty("")
+    pin = StringProperty("")
+    pin_display = StringProperty("")
+    temp_pin = StringProperty("")
+
+    def append_digit(self, digit):
+        if len(self.pin) < 4:
+            self.pin = self.pin + digit
+            self.pin_display = "*" * len(self.pin)
+            self.msg = ""
+
+    def clear(self):
+        self.pin = ""
+        self.pin_display = ""
+        self.msg = ""
+
+    def submit(self):
+        if len(self.pin) != 4:
+            self.msg = App.get_running_app().t("admin_pin_incomplete")
+            return
+        App.get_running_app().handle_admin_pin(self.mode, self.pin)
+        self.pin = ""
+        self.pin_display = ""
+
+    def cancel(self):
+        App.get_running_app().close_admin()
+
+
+class AdminMenuScreen(ScreenBase):
+    pass
+
+
 class Manager(ScreenManager):
     pass
 
@@ -474,22 +518,28 @@ class FortiBankApp(App):
     time_left = 30
 
     def build(self):
+        self.settings = Settings()
         self.kv_file = "fortibank.kv"
         self.snd_insert = SoundLoader.load("atm_insertion.mp3") if os.path.exists("atm_insertion.mp3") else None
         self.snd_count = SoundLoader.load("counting.mp3") if os.path.exists("counting.mp3") else None
         self.snd_beep = SoundLoader.load("beep.wav") if os.path.exists("beep.wav") else None
+        self._admin_taps = 0
+        self._last_admin_tap = 0.0
         Clock.schedule_interval(self.update_clock, 1)
         self.update_clock(0)
         Factory.register('PushButton', cls=PushButton)
         return Manager()
 
     def update_clock(self, dt):
-        try:
-            from zoneinfo import ZoneInfo
-            now = datetime.now(ZoneInfo("America/Mexico_City"))
-        except Exception:
-            # Mexico City is UTC-6 year-round (no DST since 2022)
-            now = datetime.now(timezone(timedelta(hours=-6)))
+        tz = None
+        if ZoneInfo is not None:
+            try:
+                tz = ZoneInfo(self.settings.timezone)
+            except Exception:
+                tz = None
+        if tz is None:
+            tz = timezone(timedelta(hours=-6))
+        now = datetime.now(tz)
         self.clock_text = now.strftime("%I:%M %p")
 
     def _beep(self):
@@ -531,12 +581,12 @@ class FortiBankApp(App):
         self.go_to('processing', beep=False)
         proc_screen = self.root.get_screen('processing')
         proc_screen.ids.proc_msg.text = (
-            "Procesando transacción segura..." if is_withdrawal else "Consultando su saldo..."
+            self.t("proc_withdraw") if is_withdrawal else self.t("proc_balance")
         )
-        proc_screen.ids.iso_proc_lbl.text = "[SYS] Conectando al Core Bancario (192.168.27.35)..."
+        proc_screen.ids.iso_proc_lbl.text = self.t("iso_proc") % (self.settings.backend_ip,)
 
         self.time_left = 30
-        proc_screen.ids.timer_lbl.text = f"Tiempo restante: {self.time_left}s"
+        proc_screen.ids.timer_lbl.text = self.t("timer", self.time_left)
         if self.timer_event:
             self.timer_event.cancel()
         self.timer_event = Clock.schedule_interval(self._tick_timer, 1)
@@ -549,7 +599,7 @@ class FortiBankApp(App):
 
     def _tick_timer(self, dt):
         self.time_left -= 1
-        self.root.get_screen('processing').ids.timer_lbl.text = f"Tiempo restante: {self.time_left}s"
+        self.root.get_screen('processing').ids.timer_lbl.text = self.t("timer", self.time_left)
         if self.time_left <= 0 and self.timer_event:
             self.timer_event.cancel()
 
@@ -560,7 +610,7 @@ class FortiBankApp(App):
             "amount": amount
         }
         try:
-            resp = requests.post(BACKEND_URL, json=payload, timeout=30)
+            resp = requests.post(BACKEND_URL or self.settings.backend_url(), json=payload, timeout=30)
             data = resp.json()
             Clock.schedule_once(lambda dt: self._handle_response(data, amount, is_withdrawal), 0)
         except Exception as exc:
@@ -597,8 +647,8 @@ class FortiBankApp(App):
         self._clear_bills()
         self.go_to('dispensing', beep=False)
         disp = self.root.get_screen('dispensing')
-        disp.ids.disp_title.text = "Contando billetes..."
-        disp.ids.disp_sub.text = "Por favor espere"
+        disp.ids.disp_title.text = self.t("disp_count")
+        disp.ids.disp_sub.text = self.t("disp_count_sub")
 
         if self.snd_count:
             self.snd_count.loop = True
@@ -611,8 +661,8 @@ class FortiBankApp(App):
             self.snd_count.stop()
 
         disp = self.root.get_screen('dispensing')
-        disp.ids.disp_title.text = "Entregando su dinero"
-        disp.ids.disp_sub.text = "Por favor, tome su efectivo"
+        disp.ids.disp_title.text = self.t("disp_deliver")
+        disp.ids.disp_sub.text = self.t("disp_take")
         area = disp.ids.bill_area
 
         # Clear any previous bills from the bill area
@@ -668,18 +718,153 @@ class FortiBankApp(App):
         self.go_to('result', beep=False)
         res = self.root.get_screen('result')
         if success:
-            res.ids.res_title.text = title
+            res.ids.res_title.text = self.t("res_success")
             res.ids.res_title.color = (0.18, 0.80, 0.44, 1)
             bal = data.get("remaining_balance", 0)
-            res.ids.res_detail.text = f"Saldo Disponible: ${bal:,.2f} MXN"
+            res.ids.res_detail.text = self.t("res_balance", f"{bal:,.2f}")
         else:
-            res.ids.res_title.text = "Operación Declinada"
+            res.ids.res_title.text = self.t("res_declined")
             res.ids.res_title.color = (0.91, 0.30, 0.24, 1)
             res.ids.res_detail.text = title
 
         req_txt = data.get("iso_request", "N/A")
         res_txt = data.get("iso_response", "N/A")
-        res.ids.res_iso.text = f"[SYS] Tráfico SASE Inspeccionado:\nREQ: {req_txt}\nRES: {res_txt}"
+        res.ids.res_iso.text = "[SYS] {0}:\nREQ: {1}\nRES: {2}".format(
+            self.t("iso_traffic"), req_txt, res_txt)
+
+
+    def on_start(self):
+        self._apply_language()
+        self._refresh_admin()
+
+    def t(self, key, *args):
+        text = translate(self.settings.language, key)
+        if args:
+            try:
+                return text % args
+            except Exception:
+                return text
+        return text
+
+    def _apply_language(self):
+        lang = self.settings.language
+        for screen in self.root.screens:
+            for key, widget in screen.ids.items():
+                if key in TRANSLATIONS:
+                    widget.text = TRANSLATIONS[key][0 if lang == 'es' else 1]
+
+    def _refresh_admin(self):
+        lang = self.settings.language
+        scr = self.root.get_screen('adminmenu')
+        if 'admin_lang_btn' in scr.ids:
+            scr.ids.admin_lang_btn.text = (
+                "Idioma: Español" if lang == 'es' else "Language: English")
+        if 'admin_tz_btn' in scr.ids:
+            tz_label = ("CDMX" if self.settings.timezone == 'America/Mexico_City'
+                        else "Miami")
+            prefix = "Zona Horaria: " if lang == 'es' else "Timezone: "
+            scr.ids.admin_tz_btn.text = prefix + tz_label
+        if 'backend_ip_input' in scr.ids:
+            scr.ids.backend_ip_input.text = self.settings.backend_ip
+
+    def register_admin_tap(self):
+        now = time.time()
+        if now - self._last_admin_tap > 3.5:
+            self._admin_taps = 0
+        self._admin_taps += 1
+        self._last_admin_tap = now
+        if self._admin_taps >= 5:
+            self._admin_taps = 0
+            self.open_admin_pin()
+
+    def open_admin_pin(self, mode='verify'):
+        scr = self.root.get_screen('adminpin')
+        scr.mode = mode
+        scr.pin = ""
+        scr.pin_display = ""
+        scr.msg = ""
+        if mode == 'verify':
+            scr.title = self.t("admin_pin_verify_title")
+        else:
+            scr.title = self.t("admin_pin_new_title")
+        self.go_to('adminpin', beep=False)
+
+    def open_change_pin(self):
+        self.open_admin_pin('new')
+
+    def handle_admin_pin(self, mode, pin):
+        scr = self.root.get_screen('adminpin')
+        if mode == 'verify':
+            if pin == self.settings.admin_pin:
+                self.open_admin_menu()
+            else:
+                scr.msg = self.t("admin_pin_incorrect")
+        elif mode == 'new':
+            scr.temp_pin = pin
+            scr.mode = 'confirm'
+            scr.title = self.t("admin_pin_confirm_title")
+            scr.msg = ""
+        elif mode == 'confirm':
+            if pin == scr.temp_pin:
+                self.settings.set('admin_pin', pin)
+                self.open_admin_menu()
+            else:
+                scr.mode = 'new'
+                scr.title = self.t("admin_pin_new_title")
+                scr.msg = self.t("admin_pin_mismatch")
+
+    def open_admin_menu(self):
+        self.go_to('adminmenu', beep=False)
+        self._refresh_admin()
+
+    def close_admin(self):
+        self.go_to('insert', beep=False)
+
+    def toggle_language(self):
+        new_lang = 'en' if self.settings.language == 'es' else 'es'
+        self.settings.set('language', new_lang)
+        self._apply_language()
+        self._refresh_admin()
+
+    def toggle_timezone(self):
+        if self.settings.timezone == 'America/Mexico_City':
+            new_tz = 'America/New_York'
+        else:
+            new_tz = 'America/Mexico_City'
+        self.settings.set('timezone', new_tz)
+        self._refresh_admin()
+
+    def save_backend_ip(self):
+        scr = self.root.get_screen('adminmenu')
+        ip = scr.ids.backend_ip_input.text.strip()
+        if self._valid_ip(ip):
+            self.settings.set('backend_ip', ip)
+        else:
+            scr.ids.backend_ip_input.text = self.settings.backend_ip
+
+    @staticmethod
+    def _valid_ip(ip):
+        parts = ip.split('.')
+        if len(parts) != 4:
+            return False
+        for part in parts:
+            if not part.isdigit():
+                return False
+            if not (0 <= int(part) <= 255):
+                return False
+        return True
+
+    def do_reboot(self):
+        try:
+            subprocess.run(["sudo", "-n", "reboot"], check=False)
+        except Exception:
+            pass
+
+    def do_poweroff(self):
+        try:
+            subprocess.run(["sudo", "-n", "poweroff"], check=False)
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
