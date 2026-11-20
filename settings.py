@@ -44,6 +44,12 @@ TRANSLATIONS = {
     "res_balance": ("Saldo Disponible: $%s MXN", "Available Balance: $%s MXN"),
     "iso_traffic": ("Tráfico SASE Inspeccionado", "SASE Traffic Inspected"),
 
+    # Card animation / transaction results
+    "card_reading": ("Leyendo Tarjeta...", "Reading Card..."),
+    "card_eject": ("Por favor, retire su tarjeta", "Please remove your card"),
+    "declined": ("Transacción Declinada", "Transaction Declined"),
+    "conn_error": ("Error de conexión ZTNA", "ZTNA connection error"),
+
     # Admin menu
     "admin_menu_title": ("Menú de Administración", "Administration Menu"),
     "admin_backend_lbl": ("Backend IP:", "Backend IP:"),

@@ -356,7 +356,7 @@ class ScreenCardAnim(Screen):
 
         # title text (top ~20%)
         self.title_lbl = Label(
-            text="Leyendo Tarjeta...",
+            text=App.get_running_app().t("card_reading"),
             font_size='44sp',
             bold=True,
             size_hint=(None, None),
@@ -432,7 +432,7 @@ class ScreenCardAnim(Screen):
         self.card_num.text = " ".join(card["num"][i:i + 4] for i in range(0, 16, 4))
         self.card_name.text = card["name"].upper()
         self.card_brand.source = "visa.png" if card["brand"] == "VISA" else "mastercard.png"
-        self.title_lbl.text = "Leyendo Tarjeta..."
+        self.title_lbl.text = App.get_running_app().t("card_reading")
         self.card.y = -480
 
         app = App.get_running_app()
@@ -448,7 +448,7 @@ class ScreenCardAnim(Screen):
         seq.start(self.card)
 
     def play_eject(self):
-        self.title_lbl.text = "Por favor, retire su tarjeta"
+        self.title_lbl.text = App.get_running_app().t("card_eject")
         self.card.y = 720
 
         app = App.get_running_app()
@@ -652,14 +652,14 @@ class FortiBankApp(App):
             if is_withdrawal:
                 self._dispense_bills(amount, data)
             else:
-                self._show_result(True, "Consulta de Saldo", data)
+                self._show_result(True, self.t("res_success"), data)
         else:
-            self._show_result(False, data.get("detail", "Transacción Declinada"), data)
+            self._show_result(False, data.get("detail") or self.t("declined"), data)
 
     def _handle_error(self, err_msg):
         if self.timer_event:
             self.timer_event.cancel()
-        self._show_result(False, "Error de conexión ZTNA", {"iso_request": err_msg, "iso_response": ""})
+        self._show_result(False, self.t("conn_error"), {"iso_request": err_msg, "iso_response": ""})
 
     def _clear_bills(self):
         """Remove any bill images left in the dispensing area."""
