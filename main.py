@@ -506,6 +506,35 @@ class AdminMenuScreen(ScreenBase):
     pass
 
 
+class AdminIpScreen(ScreenBase):
+    value = StringProperty("")
+    msg = StringProperty("")
+
+    def append_digit(self, digit):
+        if len(self.value) < 15:
+            self.value = self.value + digit
+            self.msg = ""
+
+    def append_dot(self):
+        if len(self.value) < 15 and not self.value.endswith("."):
+            self.value = self.value + "."
+            self.msg = ""
+
+    def backspace(self):
+        self.value = self.value[:-1]
+        self.msg = ""
+
+    def clear(self):
+        self.value = ""
+        self.msg = ""
+
+    def submit(self):
+        App.get_running_app().handle_admin_ip(self.value)
+
+    def cancel(self):
+        App.get_running_app().open_admin_menu()
+
+
 class Manager(ScreenManager):
     pass
 
@@ -764,8 +793,8 @@ class FortiBankApp(App):
                         else "Miami")
             prefix = "Zona Horaria: " if lang == 'es' else "Timezone: "
             scr.ids.admin_tz_btn.text = prefix + tz_label
-        if 'backend_ip_input' in scr.ids:
-            scr.ids.backend_ip_input.text = self.settings.backend_ip
+        if 'backend_ip_value' in scr.ids:
+            scr.ids.backend_ip_value.text = self.settings.backend_ip
 
     def register_admin_tap(self):
         now = time.time()
@@ -820,6 +849,23 @@ class FortiBankApp(App):
     def close_admin(self):
         self.go_to('insert', beep=False)
 
+    def open_admin_ip(self):
+        scr = self.root.get_screen('adminip')
+        scr.value = self.settings.backend_ip
+        scr.msg = ""
+        self.go_to('adminip', beep=False)
+
+    def handle_admin_ip(self, ip):
+        ip = ip.strip()
+        if self._valid_ip(ip):
+            self.settings.set('backend_ip', ip)
+            self._refresh_admin()
+            self.open_admin_menu()
+        else:
+            scr = self.root.get_screen('adminip')
+            scr.value = ""
+            scr.msg = self.t("admin_ip_invalid")
+
     def toggle_language(self):
         new_lang = 'en' if self.settings.language == 'es' else 'es'
         self.settings.set('language', new_lang)
@@ -833,14 +879,6 @@ class FortiBankApp(App):
             new_tz = 'America/Mexico_City'
         self.settings.set('timezone', new_tz)
         self._refresh_admin()
-
-    def save_backend_ip(self):
-        scr = self.root.get_screen('adminmenu')
-        ip = scr.ids.backend_ip_input.text.strip()
-        if self._valid_ip(ip):
-            self.settings.set('backend_ip', ip)
-        else:
-            scr.ids.backend_ip_input.text = self.settings.backend_ip
 
     @staticmethod
     def _valid_ip(ip):

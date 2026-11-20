@@ -61,6 +61,11 @@ TRANSLATIONS = {
     "admin_pin_mismatch": ("Los PIN no coinciden", "PINs do not match"),
     "admin_pin_incorrect": ("PIN incorrecto", "Incorrect PIN"),
     "admin_pin_incomplete": ("NIP incompleto", "Incomplete PIN"),
+    "admin_ip_title": ("Configurar Backend IP", "Set Backend IP"),
+    "admin_ip_invalid": ("IP inválida (0-255 por campo)", "Invalid IP (0-255 per field)"),
+    "admin_ip_clear": ("BORRAR", "CLEAR"),
+    "admin_ip_enter": ("ENTRAR", "ENTER"),
+    "admin_ip_cancel": ("CANCELAR", "CANCEL"),
 }
 
 

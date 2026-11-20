@@ -117,7 +117,7 @@ The menu lets you configure:
 
 - **Language** — Español / English (translates the whole UI)
 - **Timezone** — Mexico City (`America/Mexico_City`) / Miami (`America/New_York`)
-- **Backend IP** — the host used to build `http://<ip>:8000/api/withdraw`
+- **Backend IP** — enter the host on an on-screen numeric keypad (0–9 and dot); used to build `http://<ip>:8000/api/withdraw`
 - **Change PIN** — set a new 4-digit admin PIN (entered twice to confirm)
 - **Reboot** / **Power Off** — restart or shut down the device
 
