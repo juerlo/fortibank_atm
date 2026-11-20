@@ -128,6 +128,22 @@ admin PIN.
 
 ---
 
+## Screensaver (idle burn-in protection)
+
+After **120 seconds** of no touch input, a screensaver is shown to protect the
+panel from burn-in:
+
+- A **bouncing "FortiBank ATM"** logo (DVD-style) drifting around the screen
+- **Floating banknotes** (50/100/200/500) drifting upward
+- A live **clock** and a pulsing **"Touch the screen to continue"** hint
+
+Any tap dismisses it and returns to the previous screen (the tap is consumed so it
+does not activate anything underneath). The screensaver is skipped on the
+processing/dispensing/card-animation screens so it never interrupts a transaction.
+The timeout is the `SCREENSAVER_TIMEOUT` class attribute in `main.py` (120 s).
+
+---
+
 ## Best Practices Followed
 
 - **Pattern A layout**: Virtual environment (`.venv/`) lives inside the project root so the entire project is self-contained.

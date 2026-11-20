@@ -1,4 +1,6 @@
 import os
+import math
+import random
 import threading
 import logging
 import subprocess
@@ -37,6 +39,7 @@ from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.graphics import Color, RoundedRectangle, Rectangle, Line, PushMatrix, PopMatrix, Rotate
 from kivy.graphics.texture import Texture
+from kivy.core.window import Window
 
 from settings import Settings, TRANSLATIONS, translate
 
@@ -535,8 +538,153 @@ class AdminIpScreen(ScreenBase):
         App.get_running_app().open_admin_menu()
 
 
+class ScreenSaver(ScreenBase):
+    """Idle burn-in protection: bouncing FortiBank logo, floating bills, clock."""
+
+    LOGO_W = 430
+    LOGO_H = 110
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self._t = 0.0
+        self._logo_x = 300.0
+        self._logo_y = 250.0
+        self._vx = 95.0
+        self._vy = 65.0
+        self._bills = []
+        self._anim = None
+        self._build()
+
+    def _build(self):
+        # Dark radial gradient backdrop
+        self._bg = Rectangle(
+            pos=self.pos, size=self.size,
+            texture=_radial_texture((0.02, 0.10, 0.22), (0.0, 0.01, 0.03)))
+        self.canvas.add(self._bg)
+        self.bind(pos=self._sync_bg, size=self._sync_bg)
+
+        # Floating banknotes
+        bill_imgs = ["50.png", "100.png", "200.png", "500.png"]
+        for i in range(10):
+            src = bill_imgs[i % len(bill_imgs)]
+            if not os.path.exists(src):
+                continue
+            img = Image(source=src, size_hint=(None, None), size=(120, 51),
+                        opacity=random.uniform(0.12, 0.28), allow_stretch=True)
+            img.pos = (random.uniform(0, 900), random.uniform(0, 560))
+            self.add_widget(img)
+            self._bills.append([img, random.uniform(10, 26), random.uniform(-8, 8)])
+
+        # Bouncing FortiBank logo
+        self._logo = Factory.AtmButton(
+            text=("[b][color=f39c12][size=38]FortiBank[/size][/color] "
+                  "[b][color=ffffff][size=38]ATM[/size][/color][/b]"),
+            markup=True, size_hint=(None, None), size=(self.LOGO_W, self.LOGO_H),
+            background_color=(0.05, 0.10, 0.18, 0.96))
+        self._logo.pos = (self._logo_x, self._logo_y)
+        self.add_widget(self._logo)
+
+        # Clock
+        self._clock = Label(
+            text=App.get_running_app().clock_text, font_size='30sp', bold=True,
+            color=(1, 1, 1, 0.92), size_hint=(None, None), size=(400, 50),
+            halign='center', valign='middle', text_size=(400, 50))
+        self._clock.pos = (312, 36)
+        self.add_widget(self._clock)
+
+        # Pulsing hint
+        self._hint = Label(
+            text=App.get_running_app().t("saver_hint"), font_size='18sp',
+            color=(1, 1, 1, 0.55), size_hint=(None, None), size=(700, 40),
+            halign='center', valign='middle', text_size=(700, 40))
+        self._hint.pos = (162, 100)
+        self.add_widget(self._hint)
+
+        # Full-screen invisible touch catcher: any tap dismisses the screensaver
+        self._dismiss = Button(
+            text="", size_hint=(1, 1), background_normal='',
+            background_down='', background_color=(0, 0, 0, 0))
+        self._dismiss.on_release = self._dismiss_now
+        self.add_widget(self._dismiss)
+
+    def _dismiss_now(self, *a):
+        App.get_running_app().dismiss_screensaver()
+
+    def _sync_bg(self, *a):
+        self._bg.pos = self.pos
+        self._bg.size = self.size
+
+    def on_enter(self):
+        self._t = 0.0
+        if self._anim:
+            self._anim.cancel()
+        self._anim = Clock.schedule_interval(self._animate, 0)
+
+    def on_leave(self):
+        if self._anim:
+            self._anim.cancel()
+            self._anim = None
+
+    def _animate(self, dt):
+        self._t += dt
+
+        # Bounce the logo off the screen edges
+        x = self._logo_x + self._vx * dt
+        y = self._logo_y + self._vy * dt
+        maxx = max(0.0, self.width - self.LOGO_W)
+        maxy = max(0.0, self.height - self.LOGO_H)
+        if x <= 0:
+            x, self._vx = 0.0, abs(self._vx)
+        elif x >= maxx:
+            x, self._vx = maxx, -abs(self._vx)
+        if y <= 0:
+            y, self._vy = 0.0, abs(self._vy)
+        elif y >= maxy:
+            y, self._vy = maxy, -abs(self._vy)
+        self._logo_x, self._logo_y = x, y
+        self._logo.pos = (x, y)
+
+        # Drift the banknotes upward, wrapping around
+        for img, vy, vx in self._bills:
+            ix, iy = img.pos
+            iy += vy * dt
+            ix += vx * dt
+            if iy > self.height + 60:
+                iy = -60.0
+                ix = random.uniform(0, max(1.0, self.width - 120))
+            if ix < -130:
+                ix = self.width + 10.0
+            elif ix > self.width + 10:
+                ix = -130.0
+            img.pos = (ix, iy)
+
+        # Pulse the hint
+        self._hint.opacity = 0.40 + 0.25 * (0.5 + 0.5 * math.sin(self._t * 2.0))
+
+        # Keep the clock live
+        app = App.get_running_app()
+        if app:
+            self._clock.text = app.clock_text
+
+    def on_touch_down(self, touch):
+        # Consume the touch so the screen behind is not activated
+        return True
+
+    def on_touch_up(self, touch):
+        return True
+
+
 class Manager(ScreenManager):
-    pass
+    def on_touch_down(self, touch):
+        app = App.get_running_app()
+        if app is not None:
+            # Any activity resets the idle timer
+            app._last_activity = time.time()
+            # While the screensaver is up, consume the touch and dismiss it
+            if self.current == 'screensaver':
+                app.dismiss_screensaver()
+                return True
+        return super().on_touch_down(touch)
 
 
 class FortiBankApp(App):
@@ -545,6 +693,8 @@ class FortiBankApp(App):
     current_nip = ""
     timer_event = None
     time_left = 30
+    SCREENSAVER_TIMEOUT = 120   # seconds of inactivity before the screensaver
+    SCREENSAVER_SKIP = {'processing', 'dispensing', 'cardanim', 'screensaver'}
 
     def build(self):
         self.settings = Settings()
@@ -554,7 +704,10 @@ class FortiBankApp(App):
         self.snd_beep = SoundLoader.load("beep.wav") if os.path.exists("beep.wav") else None
         self._admin_taps = 0
         self._last_admin_tap = 0.0
+        self._last_activity = time.time()
+        self._prev_screen = 'insert'
         Clock.schedule_interval(self.update_clock, 1)
+        Clock.schedule_interval(self._check_idle, 5)
         self.update_clock(0)
         Factory.register('PushButton', cls=PushButton)
         return Manager()
@@ -591,6 +744,7 @@ class FortiBankApp(App):
     def go_to(self, screen_name, beep=True):
         if beep:
             self._beep()
+        self._last_activity = time.time()
         self.root.current = screen_name
 
     def insert_card(self, card):
@@ -934,6 +1088,30 @@ class FortiBankApp(App):
             subprocess.run(["sudo", "-n", "poweroff"], check=False)
         except Exception:
             pass
+
+
+    # ------------------------------------------------------------------
+    # Screensaver (idle burn-in protection)
+    # ------------------------------------------------------------------
+    def _check_idle(self, dt):
+        if self.root is None:
+            return
+        if self.root.current in self.SCREENSAVER_SKIP:
+            return
+        if time.time() - self._last_activity >= self.SCREENSAVER_TIMEOUT:
+            self._show_screensaver()
+
+    def _show_screensaver(self):
+        if self.root is None or self.root.current == 'screensaver':
+            return
+        self._prev_screen = self.root.current
+        self.go_to('screensaver', beep=False)
+
+    def dismiss_screensaver(self):
+        if self.root is None or self.root.current != 'screensaver':
+            return
+        self._last_activity = time.time()
+        self.go_to(self._prev_screen or 'insert', beep=False)
 
 
 if __name__ == '__main__':

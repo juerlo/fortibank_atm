@@ -49,6 +49,7 @@ TRANSLATIONS = {
     "card_eject": ("Por favor, retire su tarjeta", "Please remove your card"),
     "declined": ("Transacción Declinada", "Transaction Declined"),
     "conn_error": ("Error de conexión ZTNA", "ZTNA connection error"),
+    "saver_hint": ("Toque la pantalla para continuar", "Touch the screen to continue"),
 
     # Admin menu
     "admin_menu_title": ("Menú de Administración", "Administration Menu"),
