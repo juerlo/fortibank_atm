@@ -128,19 +128,24 @@ admin PIN.
 
 ---
 
-## Screensaver (idle burn-in protection)
+## Screensaver & display timeouts
 
-After **120 seconds** of no touch input, a screensaver is shown to protect the
-panel from burn-in:
+Both are configurable in the admin menu under **SALTOPANTALLAS / SCREENSAVER**
+(defaults: screensaver after **120 s**, screen-off **disabled**):
 
-- A **bouncing "FortiBank ATM"** logo (DVD-style) drifting around the screen
-- **Floating banknotes** (50/100/200/500) drifting upward
-- A live **clock** and a pulsing **"Touch the screen to continue"** hint
+- **Screensaver** — after the configured idle time a screensaver is shown to
+  protect the panel from burn-in:
+  - A **bouncing "FortiBank ATM"** logo (DVD-style) drifting around the screen
+  - **Floating banknotes** (50/100/200/500) drifting upward
+  - A pulsing **"Touch the screen to continue"** hint
+  (the clock was removed because a fixed element would itself burn in)
+- **Screen off** — after the configured idle time the HDMI output is blanked via
+  DPMS (`xset dpms force off`); any touch wakes it (`xset dpms force on`).
 
-Any tap dismisses it and returns to the previous screen (the tap is consumed so it
-does not activate anything underneath). The screensaver is skipped on the
-processing/dispensing/card-animation screens so it never interrupts a transaction.
-The timeout is the `SCREENSAVER_TIMEOUT` class attribute in `main.py` (120 s).
+Any tap dismisses the screensaver and returns to the previous screen (the tap is
+consumed so it does not activate anything underneath). Both are skipped on the
+processing/dispensing/card-animation screens so they never interrupt a transaction.
+Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, seconds).
 
 ---
 

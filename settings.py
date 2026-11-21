@@ -13,6 +13,8 @@ DEFAULTS = {
     "timezone": "America/Mexico_City",
     "backend_ip": "192.168.27.35",
     "admin_pin": "0000",
+    "saver_timeout": "120",
+    "screenoff_timeout": "0",
 }
 
 # key -> (Spanish, English)
@@ -50,6 +52,14 @@ TRANSLATIONS = {
     "declined": ("Transacción Declinada", "Transaction Declined"),
     "conn_error": ("Error de conexión ZTNA", "ZTNA connection error"),
     "saver_hint": ("Toque la pantalla para continuar", "Touch the screen to continue"),
+
+    # Screensaver / display configuration
+    "admin_saver_btn": ("SALTOPANTALLAS", "SCREENSAVER"),
+    "saver_cfg_title": ("Salvapantallas y Pantalla", "Screensaver & Display"),
+    "saver_start_lbl": ("Iniciar salvapantallas:", "Start screensaver:"),
+    "screenoff_lbl": ("Apagar pantalla:", "Turn screen off:"),
+    "saver_off": ("No", "Off"),
+    "saver_cfg_back": ("VOLVER", "BACK"),
 
     # Admin menu
     "admin_menu_title": ("Menú de Administración", "Administration Menu"),
@@ -139,6 +149,20 @@ class Settings:
     @property
     def admin_pin(self):
         return self.data["admin_pin"]
+
+    @property
+    def saver_timeout(self):
+        try:
+            return int(self.data.get("saver_timeout", DEFAULTS["saver_timeout"]))
+        except (TypeError, ValueError):
+            return int(DEFAULTS["saver_timeout"])
+
+    @property
+    def screenoff_timeout(self):
+        try:
+            return int(self.data.get("screenoff_timeout", DEFAULTS["screenoff_timeout"]))
+        except (TypeError, ValueError):
+            return int(DEFAULTS["screenoff_timeout"])
 
     def backend_url(self):
         return "http://{0}:8000/api/withdraw".format(self.data["backend_ip"])

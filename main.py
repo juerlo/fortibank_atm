@@ -584,14 +584,6 @@ class ScreenSaver(ScreenBase):
         self._logo.pos = (self._logo_x, self._logo_y)
         self.add_widget(self._logo)
 
-        # Clock
-        self._clock = Label(
-            text=App.get_running_app().clock_text, font_size='30sp', bold=True,
-            color=(1, 1, 1, 0.92), size_hint=(None, None), size=(400, 50),
-            halign='center', valign='middle', text_size=(400, 50))
-        self._clock.pos = (312, 36)
-        self.add_widget(self._clock)
-
         # Pulsing hint
         self._hint = Label(
             text=App.get_running_app().t("saver_hint"), font_size='18sp',
@@ -661,11 +653,6 @@ class ScreenSaver(ScreenBase):
         # Pulse the hint
         self._hint.opacity = 0.40 + 0.25 * (0.5 + 0.5 * math.sin(self._t * 2.0))
 
-        # Keep the clock live
-        app = App.get_running_app()
-        if app:
-            self._clock.text = app.clock_text
-
     def on_touch_down(self, touch):
         # Consume the touch so the screen behind is not activated
         return True
@@ -674,12 +661,27 @@ class ScreenSaver(ScreenBase):
         return True
 
 
+class ScreenSaverCfg(ScreenBase):
+    """Admin screen to configure the screensaver and display-off timeouts."""
+
+    def set_saver(self, seconds):
+        App.get_running_app().set_saver_timeout(seconds)
+
+    def set_screenoff(self, seconds):
+        App.get_running_app().set_screenoff_timeout(seconds)
+
+    def back(self):
+        App.get_running_app().open_admin_menu()
+
+
 class Manager(ScreenManager):
     def on_touch_down(self, touch):
         app = App.get_running_app()
         if app is not None:
-            # Any activity resets the idle timer
+            # Any activity resets the idle timer and wakes the display
             app._last_activity = time.time()
+            if app._screen_off:
+                app._wake_screen()
             # While the screensaver is up, consume the touch and dismiss it
             if self.current == 'screensaver':
                 app.dismiss_screensaver()
@@ -693,7 +695,6 @@ class FortiBankApp(App):
     current_nip = ""
     timer_event = None
     time_left = 30
-    SCREENSAVER_TIMEOUT = 120   # seconds of inactivity before the screensaver
     SCREENSAVER_SKIP = {'processing', 'dispensing', 'cardanim', 'screensaver'}
 
     def build(self):
@@ -706,6 +707,7 @@ class FortiBankApp(App):
         self._last_admin_tap = 0.0
         self._last_activity = time.time()
         self._prev_screen = 'insert'
+        self._screen_off = False
         Clock.schedule_interval(self.update_clock, 1)
         Clock.schedule_interval(self._check_idle, 5)
         self.update_clock(0)
@@ -1096,9 +1098,17 @@ class FortiBankApp(App):
     def _check_idle(self, dt):
         if self.root is None:
             return
+        if self._screen_off:
+            return
         if self.root.current in self.SCREENSAVER_SKIP:
             return
-        if time.time() - self._last_activity >= self.SCREENSAVER_TIMEOUT:
+        elapsed = time.time() - self._last_activity
+        screenoff = self.settings.screenoff_timeout
+        saver = self.settings.saver_timeout
+        if screenoff > 0 and elapsed >= screenoff:
+            self._turn_screen_off()
+            return
+        if saver > 0 and elapsed >= saver:
             self._show_screensaver()
 
     def _show_screensaver(self):
@@ -1112,6 +1122,54 @@ class FortiBankApp(App):
             return
         self._last_activity = time.time()
         self.go_to(self._prev_screen or 'insert', beep=False)
+
+
+    # ------------------------------------------------------------------
+    # Screensaver / display configuration
+    # ------------------------------------------------------------------
+    def open_saver_cfg(self):
+        self._refresh_saver_cfg()
+        self.go_to('savercfg', beep=False)
+
+    def _fmt_timeout(self, seconds):
+        if seconds <= 0:
+            return self.t("saver_off")
+        if seconds < 60:
+            return "{0}s".format(seconds)
+        if seconds % 60 == 0:
+            return "{0}m".format(seconds // 60)
+        return "{0}m{1}s".format(seconds // 60, seconds % 60)
+
+    def _refresh_saver_cfg(self):
+        scr = self.root.get_screen('savercfg')
+        if 'saver_value_lbl' in scr.ids:
+            scr.ids.saver_value_lbl.text = self._fmt_timeout(self.settings.saver_timeout)
+        if 'screenoff_value_lbl' in scr.ids:
+            scr.ids.screenoff_value_lbl.text = self._fmt_timeout(self.settings.screenoff_timeout)
+
+    def set_saver_timeout(self, seconds):
+        self.settings.set('saver_timeout', str(int(seconds)), persist=False)
+        self._refresh_saver_cfg()
+
+    def set_screenoff_timeout(self, seconds):
+        self.settings.set('screenoff_timeout', str(int(seconds)), persist=False)
+        self._refresh_saver_cfg()
+
+    def _turn_screen_off(self):
+        try:
+            subprocess.run(["xset", "dpms", "force", "off"], check=False,
+                           env=dict(os.environ, DISPLAY=":2"))
+            self._screen_off = True
+        except Exception:
+            pass
+
+    def _wake_screen(self):
+        self._screen_off = False
+        try:
+            subprocess.run(["xset", "dpms", "force", "on"], check=False,
+                           env=dict(os.environ, DISPLAY=":2"))
+        except Exception:
+            pass
 
 
 if __name__ == '__main__':
