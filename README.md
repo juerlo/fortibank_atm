@@ -152,8 +152,10 @@ Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, secon
 ## Backend
 
 The ATM talks to the FortiBank Core Backend at `http://<backend_ip>:8000/api/withdraw`.
-The backend IP is configurable from the admin menu. Access details for the lab
-backend (SSH, paths, API) are in [docs/BACKEND_ACCESS.md](docs/BACKEND_ACCESS.md).
+The backend IP is configurable from the admin menu.
+
+- Backend source & install guide: [backend/](backend/) (`backend/README.md`)
+- Lab backend access (SSH, paths, API): [docs/BACKEND_ACCESS.md](docs/BACKEND_ACCESS.md)
 
 ---
 
