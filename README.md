@@ -149,6 +149,14 @@ Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, secon
 
 ---
 
+## Backend
+
+The ATM talks to the FortiBank Core Backend at `http://<backend_ip>:8000/api/withdraw`.
+The backend IP is configurable from the admin menu. Access details for the lab
+backend (SSH, paths, API) are in [docs/BACKEND_ACCESS.md](docs/BACKEND_ACCESS.md).
+
+---
+
 ## Best Practices Followed
 
 - **Pattern A layout**: Virtual environment (`.venv/`) lives inside the project root so the entire project is self-contained.
