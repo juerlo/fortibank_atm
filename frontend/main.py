@@ -700,6 +700,45 @@ class Manager(ScreenManager):
         return super().on_touch_down(touch)
 
 
+class OOSOverlay(FloatLayout):
+    """Full-screen, interaction-blocking overlay shown while the backend is down.
+
+    It is added directly to the Window (above the ScreenManager) so it covers
+    every screen. While ``active`` it swallows all touches, so the ATM
+    underneath cannot be used until the backend is reachable again.
+    """
+
+    def __init__(self, **kw):
+        super().__init__(**kw)
+        self.active = False
+        self.size = Window.size
+        self.pos = (0, 0)
+        with self.canvas.before:
+            Color(0.30, 0.02, 0.02, 0.97)
+            self._bg = Rectangle(pos=self.pos, size=self.size)
+        self.bind(pos=self._sync_bg, size=self._sync_bg)
+        self.label = Label(
+            text="", font_size='80sp', bold=True, color=(1, 1, 1, 1),
+            halign='center', valign='middle',
+        )
+        self.add_widget(self.label)
+        Window.bind(size=self._sync_window)
+
+    def _sync_window(self, *a):
+        self.size = Window.size
+        self.pos = (0, 0)
+
+    def _sync_bg(self, *a):
+        self._bg.pos = self.pos
+        self._bg.size = self.size
+
+    def on_touch_down(self, touch):
+        # While out of service, swallow every touch so the ATM is unusable.
+        if self.active:
+            return True
+        return super().on_touch_down(touch)
+
+
 class FortiBankApp(App):
     clock_text = StringProperty("12:00 PM")
     oos_active = BooleanProperty(False)
@@ -728,6 +767,11 @@ class FortiBankApp(App):
         Clock.schedule_interval(self._check_idle, 5)
         self.update_clock(0)
         Factory.register('PushButton', cls=PushButton)
+        # Full-screen, interaction-blocking "out of service" overlay. It is
+        # added to the Window (above every screen) in on_start.
+        self.oos_overlay = OOSOverlay()
+        self.oos_label = self.oos_overlay.label
+        self.oos_overlay.opacity = 0
         return Manager()
 
     def _load_sound(self, filename):
@@ -941,8 +985,10 @@ class FortiBankApp(App):
     def on_start(self):
         self._apply_language()
         self._refresh_admin()
+        # Put the full-screen "out of service" overlay above every screen.
+        Window.add_widget(self.oos_overlay)
         # Start the background keep-alive that watches the backend and toggles
-        # the "Out of Service" / "Fuera de Servicio" banner.
+        # the "Out of Service" / "Fuera de Servicio" overlay.
         threading.Thread(target=self._keepalive_loop, daemon=True).start()
 
     def t(self, key, *args):
@@ -960,8 +1006,10 @@ class FortiBankApp(App):
             for key, widget in screen.ids.items():
                 if key in TRANSLATIONS:
                     widget.text = TRANSLATIONS[key][0 if lang == 'es' else 1]
-        # Keep the out-of-service banner text in sync with the UI language.
+        # Keep the out-of-service overlay text in sync with the UI language.
         self.oos_text = self.t("out_of_service") if self.oos_active else ""
+        if self.oos_active:
+            self.oos_label.text = self.oos_text
 
     def _refresh_admin(self):
         lang = self.settings.language
@@ -1129,6 +1177,9 @@ class FortiBankApp(App):
     def _apply_oos(self, active):
         self.oos_active = active
         self.oos_text = self.t("out_of_service") if active else ""
+        self.oos_label.text = self.oos_text
+        self.oos_overlay.active = active
+        self.oos_overlay.opacity = 1 if active else 0
 
     @staticmethod
     def _valid_ip(ip):
@@ -1162,6 +1213,9 @@ class FortiBankApp(App):
     # ------------------------------------------------------------------
     def _check_idle(self, dt):
         if self.root is None:
+            return
+        # Never start the screensaver / screen-off while out of service.
+        if self.oos_active:
             return
         if self._screen_off:
             return

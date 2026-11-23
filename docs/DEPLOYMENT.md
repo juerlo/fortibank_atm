@@ -192,7 +192,7 @@ PY'
 ```
 
 Both `GET /docs` returning `200` and a successful balance inquiry confirm the
-link is healthy; the keep-alive banner stays hidden while this succeeds.
+link is healthy; the keep-alive overlay stays hidden while this succeeds.
 
 ---
 
