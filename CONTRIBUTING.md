@@ -1,4 +1,4 @@
-﻿# Contributing
+# Contributing
 
 Thanks for your interest in FortiBank ATM!
 
@@ -7,8 +7,8 @@ Thanks for your interest in FortiBank ATM!
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
-python main.py
+pip install -r frontend/requirements.txt
+python frontend/main.py
 ```
 
 See the [README](README.md) for the full setup, configuration and the admin menu.
@@ -16,9 +16,9 @@ See the [README](README.md) for the full setup, configuration and the admin menu
 ## Guidelines
 
 - Keep the app dependency-light (Kivy + requests only).
-- UI strings must go through `settings.py` `TRANSLATIONS` (Spanish + English) - never hardcode text in `main.py`/`fortibank.kv`.
-- Settings must go through the `Settings` class and persist to `settings.txt`.
-- Run `python -m py_compile main.py settings.py backend/main.py` before opening a PR.
+- UI strings must go through `frontend/settings.py` `TRANSLATIONS` (Spanish + English) - never hardcode text in `main.py`/`fortibank.kv`.
+- Settings must go through the `Settings` class and persist to `frontend/settings.txt`.
+- Run `python -m py_compile frontend/main.py frontend/settings.py backend/main.py` before opening a PR.
 - Keep commits focused and descriptive.
 
 ## Pull requests

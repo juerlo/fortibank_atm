@@ -11,4 +11,4 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile Python sources
-        run: python -m py_compile main.py settings.py backend/main.py
+        run: python -m py_compile frontend/main.py frontend/settings.py backend/main.py

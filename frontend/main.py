@@ -43,6 +43,11 @@ from kivy.core.window import Window
 
 from settings import Settings, TRANSLATIONS, translate
 
+# Directory that holds the frontend code/assets (this file). The ATM app is
+# deployed in ``frontend/`` but may be launched from another working directory,
+# so all local resources (kv, sounds, images) are resolved against it.
+FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Backend URL: env override wins, otherwise built from the saved backend IP.
 BACKEND_URL = os.environ.get("ATM_BACKEND_URL")
 
@@ -564,7 +569,7 @@ class ScreenSaver(ScreenBase):
         self.bind(pos=self._sync_bg, size=self._sync_bg)
 
         # Floating banknotes
-        bill_imgs = ["50.png", "100.png", "200.png", "500.png"]
+        bill_imgs = [os.path.join(FRONTEND_DIR, f"{d}.png") for d in (50, 100, 200, 500)]
         for i in range(10):
             src = bill_imgs[i % len(bill_imgs)]
             if not os.path.exists(src):
@@ -699,10 +704,10 @@ class FortiBankApp(App):
 
     def build(self):
         self.settings = Settings()
-        self.kv_file = "fortibank.kv"
-        self.snd_insert = SoundLoader.load("atm_insertion.mp3") if os.path.exists("atm_insertion.mp3") else None
-        self.snd_count = SoundLoader.load("counting.mp3") if os.path.exists("counting.mp3") else None
-        self.snd_beep = SoundLoader.load("beep.wav") if os.path.exists("beep.wav") else None
+        self.kv_file = os.path.join(FRONTEND_DIR, "fortibank.kv")
+        self.snd_insert = self._load_sound("atm_insertion.mp3")
+        self.snd_count = self._load_sound("counting.mp3")
+        self.snd_beep = self._load_sound("beep.wav")
         self._admin_taps = 0
         self._last_admin_tap = 0.0
         self._last_activity = time.time()
@@ -713,6 +718,10 @@ class FortiBankApp(App):
         self.update_clock(0)
         Factory.register('PushButton', cls=PushButton)
         return Manager()
+
+    def _load_sound(self, filename):
+        path = os.path.join(FRONTEND_DIR, filename)
+        return SoundLoader.load(path) if os.path.exists(path) else None
 
     def update_clock(self, dt):
         tz = None
@@ -866,7 +875,7 @@ class FortiBankApp(App):
             remaining %= denom
 
         for idx, denom in enumerate(bills):
-            img_path = f"{denom}.png"
+            img_path = os.path.join(FRONTEND_DIR, f"{denom}.png")
             if os.path.exists(img_path):
                 bill = Image(
                     source=img_path,

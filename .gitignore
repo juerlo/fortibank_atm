@@ -124,3 +124,4 @@ Thumbs.db
 
 # Runtime settings (contains admin PIN and device-specific config)
 settings.txt
+frontend/settings.txt

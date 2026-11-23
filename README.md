@@ -43,14 +43,21 @@ on-device configuration.
 
 ## Project Structure
 
+The repository is a **monorepo** that keeps the frontend and backend code in the
+same top-level folder:
+
 ```
 fortibank_atm/
-|-- main.py                  # App entry point, screens and business logic
-|-- fortibank.kv             # Kivy UI (screens, widgets, styles)
-|-- settings.py              # Settings persistence + ES/EN translations
-|-- settings.txt             # Runtime settings (gitignored - holds the admin PIN)
-|-- requirements.txt         # Pinned Python dependencies
-|-- README.md                # This file
+|-- frontend/                # ATM kiosk app (Kivy)
+|   |-- main.py              #   App entry point, screens and business logic
+|   |-- fortibank.kv         #   Kivy UI (screens, widgets, styles)
+|   |-- settings.py          #   Settings persistence + ES/EN translations
+|   |-- settings.txt         #   Runtime settings (gitignored - holds the admin PIN)
+|   |-- requirements.txt     #   Pinned Python dependencies
+|   |-- start_atm.sh         #   Launcher (waits for X, sets 1024x600, runs the app)
+|   |-- 50.png 100.png 200.png 500.png   # Bill images
+|   |-- visa.png mastercard.png          # Card brand images
+|   `-- atm_insertion.mp3 counting.mp3 beep.wav   # Sounds
 |-- backend/                 # FortiBank Core Backend (FastAPI) + install guide
 |   |-- main.py
 |   |-- requirements.txt
@@ -59,11 +66,13 @@ fortibank_atm/
 |   `-- README.md
 |-- deploy/                  # systemd units, launcher, ALSA/audio fix (Orange Pi)
 |-- docs/                    # HDMI audio fix + lab backend access notes
-|-- 50.png 100.png 200.png 500.png   # Bill images
-|-- visa.png mastercard.png          # Card brand images
-|-- atm_insertion.mp3 counting.mp3 beep.wav   # Sounds
+|-- README.md                # This file
 `-- .venv/                   # Virtual environment (gitignored)
 ```
+
+The frontend lives in `frontend/`; the backend lives in `backend/`. Everything is
+version-controlled from the repository root, so a single clone contains all the
+code.
 
 ---
 
@@ -80,19 +89,23 @@ fortibank_atm/
 
 ```bash
 cd /home/orangepi/fortibank_atm
-
 python3 -m venv .venv
 source .venv/bin/activate
 
 pip install --upgrade pip
-pip install -r requirements.txt
+pip install -r frontend/requirements.txt
 ```
 
-Run the app:
+Run the app (frontend):
 
 ```bash
-python main.py
+./start_atm.sh          # recommended (waits for X, sets 1024x600, runs the app)
+# or:
+cd frontend && python main.py
 ```
+
+The backend lives in [`backend/`](backend/) - see its README for install/run steps.
+Both the frontend and backend code live in this single repository.
 
 The app opens a fixed-size 1024x600 window.
 
@@ -100,7 +113,8 @@ The app opens a fixed-size 1024x600 window.
 
 ## Configuration
 
-Settings live in **`settings.txt`** next to `main.py` (created automatically):
+Settings live in **`frontend/settings.txt`** next to `main.py` (created
+automatically):
 
 ```ini
 language=es

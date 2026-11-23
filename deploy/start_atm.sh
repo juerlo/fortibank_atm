@@ -7,6 +7,6 @@ done
 # Pin HDMI output to the panel native 1024x600 (fixes black borders / cropped UI)
 export DISPLAY=:2
 xrandr --output HDMI-1 --mode 1024x600 2>/dev/null || true
-# Run the ATM app
-cd /home/orangepi/fortibank_atm
+# Run the ATM app (frontend lives in the frontend/ folder)
+cd /home/orangepi/fortibank_atm/frontend
 exec /home/orangepi/fortibank_atm/.venv/bin/python main.py
