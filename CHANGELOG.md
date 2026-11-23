@@ -9,6 +9,9 @@ All notable changes to this project are documented here.
   (`GET /docs`) every 5 s and toggles a header banner that reads
   "Out of Service" / "Fuera de Servicio" while the backend is unreachable; the
   banner clears automatically as soon as connectivity is restored.
+- `docs/DEPLOYMENT.md`: full procedure for syncing changes to the frontend
+  (Orange Pi `192.168.210.8`) and backend (Docker container `192.168.241.11`),
+  with verification and troubleshooting.
 
 ### Changed
 - Backend: serialize all SQLite access behind a module-level `threading.Lock`

@@ -224,6 +224,9 @@ The backend IP is configurable from the admin menu.
 The systemd units, launcher, ALSA config and the audio-fix daemon used on the
 kiosk live in **[deploy/](deploy/)** (see `deploy/README.md` for install steps).
 
+To push code changes to the live lab machines (frontend Orange Pi and backend
+Docker container), see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**.
+
 ---
 
 ## HDMI Audio Fix (Orange Pi Zero 3 / Allwinner H618)

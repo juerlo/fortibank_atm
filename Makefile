@@ -6,12 +6,18 @@
 #   make run-backend      # run the FastAPI backend (uvicorn, port 8000)
 #   make test             # syntax-check all Python sources
 #   make deploy-frontend  # rsync frontend/ to ATM_HOST (see vars below)
-#   make deploy-backend   # rsync backend/ to BACKEND_HOST
+#   make deploy-backend   # rsync backend/ to BACKEND_HOST (host-based install)
 #   make clean            # remove venvs and caches
+#
+# For the live lab machines (frontend Orange Pi 192.168.210.8 and the backend
+# Docker container on 192.168.241.11) see docs/DEPLOYMENT.md.
 
 # ---- Deploy targets (override on the command line) ----
+# Frontend (Orange Pi kiosk) - see docs/DEPLOYMENT.md
 ATM_HOST      ?= orangepi@192.168.210.8
 ATM_DIR       ?= /home/orangepi/fortibank_atm
+# Backend (host-based install only; the Docker container on 192.168.241.11 is
+# updated with the manual procedure in docs/DEPLOYMENT.md)
 BACKEND_HOST  ?= jelopez@192.168.241.6
 BACKEND_DIR   ?= /workspace/jelopez/fortibank_atm/backend
 
