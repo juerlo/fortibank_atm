@@ -55,7 +55,7 @@ TRANSLATIONS = {
     "saver_hint": ("Toque la pantalla para continuar", "Touch the screen to continue"),
 
     # Screensaver / display configuration
-    "admin_saver_btn": ("SALTOPANTALLAS", "SCREENSAVER"),
+    "admin_saver_btn": ("SALVAPANTALLAS", "SCREENSAVER"),
     "saver_cfg_title": ("Salvapantallas y Pantalla", "Screensaver & Display"),
     "saver_start_lbl": ("Iniciar salvapantallas:", "Start screensaver:"),
     "screenoff_lbl": ("Apagar pantalla:", "Turn screen off:"),

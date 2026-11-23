@@ -191,7 +191,7 @@ on startup. `settings.txt` is gitignored because it stores the admin PIN.
 
 ## Screensaver & Display Timeouts
 
-Both are configurable in the admin menu under **SALTOPANTALLAS / SCREENSAVER**
+Both are configurable in the admin menu under **SALVAPANTALLAS / SCREENSAVER**
 (defaults: screensaver after **120 s**, screen-off **disabled**):
 
 - **Screensaver** - after the configured idle time a screensaver is shown to

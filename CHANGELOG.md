@@ -20,6 +20,8 @@ All notable changes to this project are documented here.
 - Frontend: the out-of-service overlay keeps the header (FortiBank logo)
   visible and steps aside on the admin screens, so the secret admin menu stays
   reachable while the backend is down.
+- Frontend: the out-of-service overlay is now a solid, fully-opaque blue
+  (with the FortiBank logo redrawn on top) instead of the translucent red.
 - Backend: serialize all SQLite access behind a module-level `threading.Lock`
   (`db_lock`) so the funds check + withdrawal are atomic under FastAPI's
   threadpool (no lost updates / double-spends under concurrent requests).
@@ -36,6 +38,7 @@ All notable changes to this project are documented here.
   units, YAML).
 
 ### Fixed
+- Corrected the admin menu label "SALTOPANTALLAS" → "SALVAPANTALLAS".
 - `backend/install.sh`: the BOM before `#!/usr/bin/env bash` broke direct
   execution; the shebang is now clean.
 - Docs: corrected the Portainer stack guide (`backend/README.md`,

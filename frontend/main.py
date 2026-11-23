@@ -701,15 +701,15 @@ class Manager(ScreenManager):
 
 
 class OOSOverlay(FloatLayout):
-    """Interaction-blocking overlay shown while the backend is down.
+    """Solid-blue, interaction-blocking overlay shown while the backend is down.
 
     It is added directly to the Window (above the ScreenManager) and covers the
-    whole screen **except the top header**, so the FortiBank logo stays visible
-    and the secret admin menu remains reachable. While ``active`` it swallows
-    touches in the covered area so the ATM cannot be used.
+    whole screen with an opaque blue background. A copy of the FortiBank logo is
+    drawn top-left so the secret admin menu stays reachable; while ``active`` it
+    swallows touches everywhere else so the ATM cannot be used.
     """
 
-    HEADER_H = 64  # keep the header (logo) visible/tappable
+    LOGO_H = 64  # top strip reserved for the logo
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -717,35 +717,44 @@ class OOSOverlay(FloatLayout):
         self.size = Window.size
         self.pos = (0, 0)
         with self.canvas.before:
-            Color(0.30, 0.02, 0.02, 0.97)
-            self._bg = Rectangle(pos=self.pos, size=self._bg_size())
+            Color(0.043, 0.290, 0.561, 1.0)  # solid blue, fully opaque
+            self._bg = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self._sync_bg, size=self._sync_bg)
+        # Big message
         self.label = Label(
             text="", font_size='80sp', bold=True, color=(1, 1, 1, 1),
             halign='center', valign='middle',
         )
         self.add_widget(self.label)
+        # Logo copy (top-left) so the secret admin menu (5 taps) still works.
+        self._logo = Button(
+            text="[b][color=f39c12][size=28]FortiBank ATM[/size][/color][/b]",
+            markup=True, background_normal='', background_color=(0, 0, 0, 0),
+            color=(1, 1, 1, 1), halign='left', valign='middle',
+            size_hint=(None, None), size=(340, 48),
+        )
+        self._logo.bind(on_release=lambda *a: App.get_running_app().register_admin_tap())
+        self.add_widget(self._logo)
         Window.bind(size=self._sync_window)
-
-    def _bg_size(self):
-        # Red only below the header; the top HEADER_H px stay transparent so the
-        # header (and its logo) remains visible.
-        return (Window.width, max(0, Window.height - self.HEADER_H))
+        self._sync_window()
 
     def _sync_window(self, *a):
         self.size = Window.size
         self.pos = (0, 0)
+        self._bg.size = self.size
+        self._logo.pos = (30, self.height - self.LOGO_H + 8)
 
     def _sync_bg(self, *a):
         self._bg.pos = self.pos
-        self._bg.size = self._bg_size()
+        self._bg.size = self.size
 
     def on_touch_down(self, touch):
-        # Block the ATM in the covered area, but let the header (logo) through so
-        # the secret admin menu (5 taps) stays reachable while out of service.
-        if self.active and touch.pos[1] < (Window.height - self.HEADER_H):
+        # Block the ATM everywhere except the logo, which opens the admin menu.
+        if self.active:
+            if self._logo.collide_point(*touch.pos):
+                return super().on_touch_down(touch)
             return True
-        return super().on_touch_down(touch)
+        return False
 
 
 class FortiBankApp(App):
