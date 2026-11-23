@@ -1,4 +1,4 @@
-﻿"""Persistent settings and UI translations for the FortiBank ATM.
+"""Persistent settings and UI translations for the FortiBank ATM.
 
 Settings are stored in a plain-text settings.txt file next to this module so
 the secret admin menu can persist language, timezone, backend IP and admin PIN

@@ -1,4 +1,4 @@
-﻿# FortiBank ATM
+# FortiBank ATM
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Kivy](https://img.shields.io/badge/Kivy-2.3.2-5b8db8)](https://kivy.org/)

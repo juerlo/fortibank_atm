@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # Enforce AHUB_I2S1_CLKD BCLKDIV = 0x7 (48 kHz) on Allwinner H618 HDMI audio.
 # snd_sunxi_ahub resets 0x0509730c to BCLKDIV = 0x9 whenever a stream inits,
 # which halves LRCK to 24 kHz and mutes HDMI audio. This daemon re-patches it.

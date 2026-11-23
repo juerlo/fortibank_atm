@@ -139,6 +139,15 @@ Balances are stored in `fortibank_vuln.db` and persist across restarts until
 `init_db()` re-runs (which drops and recreates the table on every start - so
 balances reset when the service restarts).
 
+## Concurrency & data
+
+- All SQLite access is serialized with a module-level `threading.Lock`
+  (`db_lock` in `main.py`), so the funds check and the withdrawal are atomic
+  even though FastAPI runs the endpoint in a threadpool. This prevents lost
+  updates / double-spends under concurrent requests.
+- `init_db()` drops and recreates the `cards` table on every start, so demo
+  balances reset whenever the service (or container) restarts.
+
 ## Deliberate backdoors (lab exercises)
 
 The request model accepts extra fields used by the SASE SUMMIT exercises:
@@ -155,18 +164,23 @@ The request model accepts extra fields used by the SASE SUMMIT exercises:
 ## Run as a container (Portainer stack)
 
 The backend ships with a Portainer stack file at
-[`deploy/backend/fortibank-stack.yml`](../deploy/backend/fortibank-stack.yml).
+[`deploy/backend/fortibank-stack.yml`](../deploy/backend/fortibank-stack.yml) that
+runs the prebuilt image `fortibank-backend:latest` (the SSH server and Python
+dependencies are baked into the image via the `Dockerfile`).
 
-1. Copy this `backend/` folder to the Docker host at `/opt/prod/fortibank_atm`
-   (so `main.py` and `requirements.txt` live there).
-2. In Portainer: **Stacks -> Add stack -> Upload** the `fortibank-stack.yml`.
+1. Build the image on the Docker host from this folder (so `main.py` and
+   `requirements.txt` are copied in):
+   ```bash
+   docker build -t fortibank-backend:latest backend/
+   ```
+2. In Portainer: **Stacks -> Add stack -> Upload** the `fortibank-stack.yml`
+   (adjust `ROOT_PASSWORD` and the static `lan_bridge` IP first).
 3. Deploy. The container `prod-fortibank_atm` gets IP **192.168.241.11** on the
    external `lan_bridge` network and serves on port **8000**.
 4. The ATM reaches it at `http://192.168.241.11:8000/api/withdraw`.
 
-The stack installs `requirements.txt` + `uvicorn` on first start (no image build),
-then runs `uvicorn main:app --host 0.0.0.0 --port 8000`.
+The image entrypoint starts `sshd` and then runs
+`uvicorn main:app --host 0.0.0.0 --port 8000 --workers ${WORKERS}`.
 
 > Note: `init_db()` drops and recreates the `cards` table on every start, so demo
-> balances reset on container restart. The code+DB live under the mounted
-> `/opt/prod/fortibank_atm` volume.
+> balances reset when the container restarts.

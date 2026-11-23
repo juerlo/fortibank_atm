@@ -1,4 +1,4 @@
-﻿[Unit]
+[Unit]
 Description=FortiBank Xorg on HDMI (:2, modesetting + glamor)
 Before=multi-user.target
 Conflicts=display-manager.service

@@ -1,4 +1,4 @@
-﻿---
+---
 name: Bug report
 about: Report a problem with the ATM app
 labels: bug

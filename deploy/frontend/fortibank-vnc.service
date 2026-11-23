@@ -1,4 +1,4 @@
-﻿[Unit]
+[Unit]
 Description=FortiBank VNC mirror of :2 (port 5900)
 After=fortibank-x.service
 Requires=fortibank-x.service

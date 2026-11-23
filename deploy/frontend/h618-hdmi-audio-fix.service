@@ -1,4 +1,4 @@
-﻿[Unit]
+[Unit]
 Description=Fix Allwinner H618 AHUB I2S1 BCLKDIV for 48kHz HDMI Audio
 Before=fortibank-app.service
 

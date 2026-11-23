@@ -87,10 +87,13 @@ sudo systemctl enable --now fortibank-x fortibank-app fortibank-vnc h618-hdmi-au
 
 ## Backend container (Portainer stack)
 
-`backend/fortibank-stack.yml` deploys the FastAPI backend as a container:
+`deploy/backend/fortibank-stack.yml` deploys the FastAPI backend as a container
+from the prebuilt `fortibank-backend:latest` image:
 
 - container `prod-fortibank_atm`, IP **192.168.241.11** on external `lan_bridge`
-- volume `/opt/prod/fortibank_atm:/app` (place `backend/` code there)
-- serves on port **8000** (`uvicorn main:app`)
+- serves on port **8000** (`uvicorn main:app`, worker count from `WORKERS`)
+- SSH server + Python dependencies are baked into the image (see `backend/Dockerfile`)
 
-In Portainer: **Stacks -> Add stack -> Upload** `fortibank-stack.yml` -> Deploy.
+Build the image on the Docker host first
+(`docker build -t fortibank-backend:latest backend/`), then in Portainer:
+**Stacks -> Add stack -> Upload** `fortibank-stack.yml` -> Deploy.

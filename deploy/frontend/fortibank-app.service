@@ -1,4 +1,4 @@
-﻿[Unit]
+[Unit]
 Description=FortiBank ATM application
 After=fortibank-x.service
 Requires=fortibank-x.service

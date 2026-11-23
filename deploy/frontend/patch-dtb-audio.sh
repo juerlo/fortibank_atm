@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # Patch the Orange Pi Zero 3 DTB so ahub1_mach uses mclk-fs = 256 (0x100).
 # Required for 48 kHz HDMI audio on the H618.
 set -e

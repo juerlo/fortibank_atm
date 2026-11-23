@@ -1,4 +1,4 @@
-﻿# HDMI Audio Fix — Orange Pi Zero 3 (Allwinner H618) + Ubuntu 24.04
+# HDMI Audio Fix — Orange Pi Zero 3 (Allwinner H618) + Ubuntu 24.04
 
 HDMI audio on the Orange Pi Zero 3 (Allwinner H618) running Ubuntu 24.04 with the
 vendor kernel `6.1.31-sun50iw9` fails out of the box. There are **three software /

@@ -1,8 +1,37 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to this project are documented here.
 
 ## [Unreleased]
+
+### Changed
+- Backend: serialize all SQLite access behind a module-level `threading.Lock`
+  (`db_lock`) so the funds check + withdrawal are atomic under FastAPI's
+  threadpool (no lost updates / double-spends under concurrent requests).
+- Frontend: card brand logos (`visa.png` / `mastercard.png`) are now resolved
+  against `FRONTEND_DIR` instead of the current working directory.
+- Frontend: the admin **TEST** connectivity check now sends a real `POST`
+  (harmless `amount=0` probe) instead of a `GET`, so it exercises the endpoint
+  and no longer treats a `405` as "reachable".
+- Backend image builds on `python:3.12-slim` (was `3.11`) to match the
+  README/CI (Python 3.12).
+- `frontend/requirements.txt`: pinned `requests`' transitive deps
+  (`certifi`, `charset-normalizer`, `idna`, `urllib3`) for reproducible installs.
+- Stripped UTF-8 BOMs from all text files (Markdown, Python, shell, systemd
+  units, YAML).
+
+### Fixed
+- `backend/install.sh`: the BOM before `#!/usr/bin/env bash` broke direct
+  execution; the shebang is now clean.
+- Docs: corrected the Portainer stack guide (`backend/README.md`,
+  `deploy/README.md`) to match `deploy/backend/fortibank-stack.yml` (prebuilt
+  `fortibank-backend:latest` image; removed the stale "no image build" and
+  `/opt/prod/...:/app` volume claims).
+- Docs: fixed the broken `deploy/frontend/README.md` link in `docs/README.md`.
+
+### Security
+- `backend/main.py`: replaced bare `except:` clauses with `except Exception:`
+  so `KeyboardInterrupt` / `SystemExit` are no longer swallowed.
 
 ## [1.0.0] - 2026-11-22
 

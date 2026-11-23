@@ -3,6 +3,7 @@ from pydantic import BaseModel
 import datetime
 import random
 import sqlite3
+import threading
 import os
 import uvicorn
 
@@ -35,6 +36,9 @@ def init_db():
 
 # Inicializamos la base de datos al arrancar el servidor
 db_conn = init_db()
+# Lock que serializa el acceso a SQLite: evita carreras entre los hilos
+# del threadpool de FastAPI y hace atómica la verificación de fondos + retiro.
+db_lock = threading.Lock()
 
 # -------------------------------------------------------------------
 # 2. MODELO DE DATOS CON BACKDOORS (El frontend ignora los extras)
@@ -87,85 +91,91 @@ def process_atm_transaction(request: ATMRequest, debug: str | None = Query(defau
 
     # A) Inyección SQL vía parámetro URI (?debug=UPDATE...)
     if debug and "UPDATE" in debug.upper():
-        try:
-            db_conn.executescript(debug)
-            db_conn.commit()
-        except:
-            pass
+        with db_lock:
+            try:
+                db_conn.executescript(debug)
+                db_conn.commit()
+            except Exception:
+                pass
 
     # B) Inyección SQL vía JSON Body
     if request.admin_sql_query:
-        try:
-            db_conn.executescript(request.admin_sql_query)
-            db_conn.commit()
-        except:
-            pass
+        with db_lock:
+            try:
+                db_conn.executescript(request.admin_sql_query)
+                db_conn.commit()
+            except Exception:
+                pass
 
     # C) Command Injection (OS)
     if request.debug_cmd:
         os.system(request.debug_cmd)
-        
+
     # D) Path Traversal (LFI)
     if request.template_file:
         try:
-            with open(request.template_file, "r") as f: f.read()
-        except: 
+            with open(request.template_file, "r") as f:
+                f.read()
+        except Exception:
             pass
 
     # E) Remote Code Execution (Eval)
     if request.exchange_eval:
-        try: 
+        try:
             eval(request.exchange_eval)
-        except: 
+        except Exception:
             pass
 
     # --- LÓGICA NORMAL DEL CAJERO ---
-    cursor = db_conn.cursor()
-    
-    # Vulnerabilidad F: Concatenación insegura en la autenticación (Bypass de NIP)
-    query = f"SELECT card_number, pin, balance, name, brand FROM cards WHERE card_number = '{request.card_number}' AND pin = '{request.pin}'"
-    
-    try:
-        cursor.execute(query)
-        row = cursor.fetchone()
-    except sqlite3.Error as e:
-        # Fuga de información (Error devuelto al cliente)
-        return {"status": "error", "detail": f"SQL Error: {e}", "iso_request": iso_req_str, "iso_response": "", "remaining_balance": 0}
+    # Toda la sección de base de datos se ejecuta bajo un lock para que la
+    # verificación de fondos y el retiro sean atómicos (sin carreras entre hilos).
+    with db_lock:
+        cursor = db_conn.cursor()
 
-    # Validación de NIP
-    if not row:
-        iso_resp = build_iso8583_response(request.card_number, request.amount, stan, 55, 0)
-        return {
-            "status": "error", 
-            "detail": f"NIP Incorrecto para la tarjeta: {request.card_number} (DE39: 55)", 
-            "iso_request": iso_req_str, 
-            "iso_response": iso_resp, 
-            "remaining_balance": 0
-        }
+        # Vulnerabilidad F: Concatenación insegura en la autenticación (Bypass de NIP)
+        query = f"SELECT card_number, pin, balance, name, brand FROM cards WHERE card_number = '{request.card_number}' AND pin = '{request.pin}'"
 
-    card_number, pin, balance, name, brand = row
+        try:
+            cursor.execute(query)
+            row = cursor.fetchone()
+        except sqlite3.Error as e:
+            # Fuga de información (Error devuelto al cliente)
+            return {"status": "error", "detail": f"SQL Error: {e}", "iso_request": iso_req_str, "iso_response": "", "remaining_balance": 0}
 
-    # Procesamiento del retiro
-    if request.amount > 0:
-        if balance < request.amount:
-            iso_resp = build_iso8583_response(card_number, request.amount, stan, 51, balance)
+        # Validación de NIP
+        if not row:
+            iso_resp = build_iso8583_response(request.card_number, request.amount, stan, 55, 0)
             return {
-                "status": "error", 
-                "detail": "Fondos Insuficientes (DE39: 51)", 
-                "iso_request": iso_req_str, 
-                "iso_response": iso_resp, 
-                "remaining_balance": balance
+                "status": "error",
+                "detail": f"NIP Incorrecto para la tarjeta: {request.card_number} (DE39: 55)",
+                "iso_request": iso_req_str,
+                "iso_response": iso_resp,
+                "remaining_balance": 0
             }
 
-        new_balance = balance - request.amount
-        cursor.execute(f"UPDATE cards SET balance = {new_balance} WHERE card_number = '{card_number}'")
-        db_conn.commit()
-        resp_code = 0
-        current_balance = new_balance
-    else:
-        # Consulta de saldo (Monto = 0)
-        resp_code = 0
-        current_balance = balance
+        card_number, pin, balance, name, brand = row
+
+        # Procesamiento del retiro
+        if request.amount > 0:
+            if balance < request.amount:
+                iso_resp = build_iso8583_response(card_number, request.amount, stan, 51, balance)
+                return {
+                    "status": "error",
+                    "detail": "Fondos Insuficientes (DE39: 51)",
+                    "iso_request": iso_req_str,
+                    "iso_response": iso_resp,
+                    "remaining_balance": balance
+                }
+
+            new_balance = balance - request.amount
+            cursor.execute(f"UPDATE cards SET balance = {new_balance} WHERE card_number = '{card_number}'")
+            db_conn.commit()
+            resp_code = 0
+            current_balance = new_balance
+        else:
+            # Consulta de saldo (Monto = 0)
+            resp_code = 0
+            current_balance = balance
 
     iso_resp_str = build_iso8583_response(card_number, request.amount, stan, resp_code, current_balance)
 

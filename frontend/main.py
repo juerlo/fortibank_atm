@@ -230,7 +230,10 @@ class ScreenInsert(ScreenBase):
 
             # .card-brand — right:20, bottom:20, width:60
             brand_img = Image(
-                source="visa.png" if c["brand"] == "VISA" else "mastercard.png",
+                source=os.path.join(
+                    FRONTEND_DIR,
+                    "visa.png" if c["brand"] == "VISA" else "mastercard.png",
+                ),
                 size_hint=(None, None),
                 pos=(240, 20),
                 size=(60, 40),
@@ -439,7 +442,10 @@ class ScreenCardAnim(Screen):
     def play_insert(self, card):
         self.card_num.text = " ".join(card["num"][i:i + 4] for i in range(0, 16, 4))
         self.card_name.text = card["name"].upper()
-        self.card_brand.source = "visa.png" if card["brand"] == "VISA" else "mastercard.png"
+        self.card_brand.source = os.path.join(
+            FRONTEND_DIR,
+            "visa.png" if card["brand"] == "VISA" else "mastercard.png",
+        )
         self.title_lbl.text = App.get_running_app().t("card_reading")
         self.card.y = -480
 
@@ -1052,8 +1058,12 @@ class FortiBankApp(App):
 
     def _do_test_backend(self):
         url = "http://{0}:8000/api/withdraw".format(self.settings.backend_ip)
+        # /api/withdraw is POST-only, so probe with a minimal, harmless body
+        # (empty card + amount 0 is a no-op balance inquiry that still exercises
+        # the full request path and returns HTTP 200 when the core is reachable).
+        probe = {"card_number": "", "pin": "", "amount": 0}
         try:
-            r = requests.get(url, timeout=4)
+            r = requests.post(url, json=probe, timeout=4)
             if r.status_code < 500:
                 self._set_admin_status(self.t("admin_test_ok"), True)
             else:

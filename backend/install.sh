@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env bash
+#!/usr/bin/env bash
 # Install the FortiBank Core Backend into ./venv
 set -e
 cd "$(dirname "$0")"

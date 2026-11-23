@@ -1,4 +1,4 @@
-﻿# Backend access (FortiBank Core Backend)
+# Backend access (FortiBank Core Backend)
 
 Lab backend used by the ATM kiosk. **Lab / SASE SUMMIT exercise only** - these
 credentials are intentionally weak; do not use them outside the lab.
