@@ -127,3 +127,5 @@ Thumbs.db
 # Runtime settings (contains admin PIN and device-specific config)
 settings.txt
 frontend/settings.txt
+# Runtime SQLite database created by the backend
+backend/fortibank_vuln.db

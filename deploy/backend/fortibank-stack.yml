@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  fortibank-backend:
+    image: python:3.11-slim
+    container_name: prod-fortibank_atm
+    restart: unless-stopped
+    working_dir: /app
+    dns:
+      - 192.168.241.3
+    volumes:
+      - /opt/prod/fortibank_atm:/app
+    environment:
+      - APP_MODULE=main:app
+      - WORKERS=2
+      - PORT=8000
+      - TZ=America/Mexico_City
+    networks:
+      lan_bridge:
+        ipv4_address: 192.168.241.11
+    command: >
+      sh -c "
+      if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi &&
+      pip install --no-cache-dir uvicorn &&
+      exec uvicorn $${APP_MODULE} --host 0.0.0.0 --port $${PORT} --workers $${WORKERS}
+      "
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:8000/docs')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+networks:
+  lan_bridge:
+    external: true

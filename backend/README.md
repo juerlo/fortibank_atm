@@ -151,3 +151,22 @@ The request model accepts extra fields used by the SASE SUMMIT exercises:
 | `template_file` | Path traversal / LFI (file read) |
 | `exchange_eval` | Python `eval()` RCE |
 | `card_number` / `pin` | SQL injection in the auth query (string concat) |
+
+## Run as a container (Portainer stack)
+
+The backend ships with a Portainer stack file at
+[`deploy/backend/fortibank-stack.yml`](../deploy/backend/fortibank-stack.yml).
+
+1. Copy this `backend/` folder to the Docker host at `/opt/prod/fortibank_atm`
+   (so `main.py` and `requirements.txt` live there).
+2. In Portainer: **Stacks -> Add stack -> Upload** the `fortibank-stack.yml`.
+3. Deploy. The container `prod-fortibank_atm` gets IP **192.168.241.11** on the
+   external `lan_bridge` network and serves on port **8000**.
+4. The ATM reaches it at `http://192.168.241.11:8000/api/withdraw`.
+
+The stack installs `requirements.txt` + `uvicorn` on first start (no image build),
+then runs `uvicorn main:app --host 0.0.0.0 --port 8000`.
+
+> Note: `init_db()` drops and recreates the `cards` table on every start, so demo
+> balances reset on container restart. The code+DB live under the mounted
+> `/opt/prod/fortibank_atm` volume.

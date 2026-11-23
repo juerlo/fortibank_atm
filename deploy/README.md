@@ -84,3 +84,13 @@ sudo usermod -aG render orangepi
 sudo systemctl daemon-reload
 sudo systemctl enable --now fortibank-x fortibank-app fortibank-vnc h618-hdmi-audio-fix
 ```
+
+## Backend container (Portainer stack)
+
+`backend/fortibank-stack.yml` deploys the FastAPI backend as a container:
+
+- container `prod-fortibank_atm`, IP **192.168.241.11** on external `lan_bridge`
+- volume `/opt/prod/fortibank_atm:/app` (place `backend/` code there)
+- serves on port **8000** (`uvicorn main:app`)
+
+In Portainer: **Stacks -> Add stack -> Upload** `fortibank-stack.yml` -> Deploy.
