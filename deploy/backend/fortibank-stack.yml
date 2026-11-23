@@ -2,16 +2,13 @@ version: '3.8'
 
 services:
   fortibank-backend:
-    image: python:3.11-slim
+    image: fortibank-backend:latest
     container_name: prod-fortibank_atm
     restart: unless-stopped
     working_dir: /app
     dns:
       - 192.168.241.3
-    volumes:
-      - /opt/prod/fortibank_atm:/app
     environment:
-      - APP_MODULE=main:app
       - WORKERS=2
       - PORT=8000
       - TZ=America/Mexico_City
@@ -19,19 +16,6 @@ services:
     networks:
       lan_bridge:
         ipv4_address: 192.168.241.11
-    command: >
-      sh -c "
-      apt-get update &&
-      apt-get install -y --no-install-recommends openssh-server &&
-      mkdir -p /run/sshd &&
-      echo root:$${ROOT_PASSWORD} | chpasswd &&
-      sed -i 's/^#*PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config &&
-      sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config &&
-      /usr/sbin/sshd &&
-      if [ -f requirements.txt ]; then pip install --no-cache-dir -r requirements.txt; fi &&
-      pip install --no-cache-dir uvicorn &&
-      exec uvicorn $${APP_MODULE} --host 0.0.0.0 --port $${PORT} --workers $${WORKERS}
-      "
     healthcheck:
       test:
         - CMD
@@ -41,7 +25,7 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
-      start_period: 60s
+      start_period: 15s
 
 networks:
   lan_bridge:
