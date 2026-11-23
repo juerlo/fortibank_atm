@@ -4,6 +4,12 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Added
+- Frontend: continuous backend keep-alive. A background thread polls the core
+  (`GET /docs`) every 5 s and toggles a header banner that reads
+  "Out of Service" / "Fuera de Servicio" while the backend is unreachable; the
+  banner clears automatically as soon as connectivity is restored.
+
 ### Changed
 - Backend: serialize all SQLite access behind a module-level `threading.Lock`
   (`db_lock`) so the funds check + withdrawal are atomic under FastAPI's

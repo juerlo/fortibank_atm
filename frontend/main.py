@@ -27,7 +27,7 @@ from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.animation import Animation
 from kivy.core.audio import SoundLoader
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, BooleanProperty
 from kivy.factory import Factory
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
@@ -702,11 +702,15 @@ class Manager(ScreenManager):
 
 class FortiBankApp(App):
     clock_text = StringProperty("12:00 PM")
+    oos_active = BooleanProperty(False)
+    oos_text = StringProperty("")
     current_card = None
     current_nip = ""
     timer_event = None
     time_left = 30
     SCREENSAVER_SKIP = {'processing', 'dispensing', 'cardanim', 'screensaver'}
+    # Backend keep-alive: how often (seconds) to re-check backend reachability.
+    KEEPALIVE_INTERVAL = 5
 
     def build(self):
         self.settings = Settings()
@@ -719,6 +723,7 @@ class FortiBankApp(App):
         self._last_activity = time.time()
         self._prev_screen = 'insert'
         self._screen_off = False
+        self._oos_state = None
         Clock.schedule_interval(self.update_clock, 1)
         Clock.schedule_interval(self._check_idle, 5)
         self.update_clock(0)
@@ -936,6 +941,9 @@ class FortiBankApp(App):
     def on_start(self):
         self._apply_language()
         self._refresh_admin()
+        # Start the background keep-alive that watches the backend and toggles
+        # the "Out of Service" / "Fuera de Servicio" banner.
+        threading.Thread(target=self._keepalive_loop, daemon=True).start()
 
     def t(self, key, *args):
         text = translate(self.settings.language, key)
@@ -952,6 +960,8 @@ class FortiBankApp(App):
             for key, widget in screen.ids.items():
                 if key in TRANSLATIONS:
                     widget.text = TRANSLATIONS[key][0 if lang == 'es' else 1]
+        # Keep the out-of-service banner text in sync with the UI language.
+        self.oos_text = self.t("out_of_service") if self.oos_active else ""
 
     def _refresh_admin(self):
         lang = self.settings.language
@@ -1083,6 +1093,42 @@ class FortiBankApp(App):
             else:
                 col = (0.95, 0.61, 0.07, 1)
             scr.ids.admin_status.color = col
+
+    # ------------------------------------------------------------------
+    # Backend keep-alive (drives the "Out of Service" banner)
+    # ------------------------------------------------------------------
+    def _health_url(self):
+        """Lightweight URL used to check whether the backend is reachable."""
+        if BACKEND_URL:
+            base = BACKEND_URL.split("/api/")[0].rstrip("/")
+        else:
+            base = "http://{0}:8000".format(self.settings.backend_ip)
+        return base + "/docs"
+
+    def _backend_reachable(self):
+        try:
+            r = requests.get(self._health_url(), timeout=4)
+            return r.status_code < 500
+        except Exception:
+            return False
+
+    def _keepalive_loop(self):
+        """Continuously poll the backend and reflect reachability in the UI."""
+        while True:
+            self._update_oos(not self._backend_reachable())
+            time.sleep(self.KEEPALIVE_INTERVAL)
+
+    def _update_oos(self, active):
+        # Only touch the UI when the state actually changes.
+        if active == self._oos_state:
+            return
+        self._oos_state = active
+        self._apply_oos(active)
+
+    @mainthread
+    def _apply_oos(self, active):
+        self.oos_active = active
+        self.oos_text = self.t("out_of_service") if active else ""
 
     @staticmethod
     def _valid_ip(ip):

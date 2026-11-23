@@ -27,6 +27,8 @@ on-device configuration.
 - **Bilingual UI** - Spanish / English
 - **Screensaver & display-off** - configurable burn-in protection
 - **Touch-first** - on-screen numeric keypads (PIN and backend IP)
+- **Backend keep-alive** - header banner ("Out of Service" / "Fuera de
+  Servicio") shown while the core is unreachable, auto-cleared on reconnect
 
 ---
 
