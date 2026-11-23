@@ -1,5 +1,5 @@
 #!/bin/bash
-# Launcher for the FortiBank ATM frontend.
+# Launcher for the FortiBank ATM frontend (monorepo root).
 # Waits for Xorg, pins HDMI to 1024x600, then runs the app in frontend/.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -13,6 +13,6 @@ done
 export DISPLAY=:2
 xrandr --output HDMI-1 --mode 1024x600 2>/dev/null || true
 
-# Run the ATM app
+# Run the ATM app using the frontend's own virtualenv
 cd "$SCRIPT_DIR/frontend"
-exec "$SCRIPT_DIR/.venv/bin/python" main.py
+exec "$SCRIPT_DIR/frontend/.venv/bin/python" main.py

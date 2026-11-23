@@ -48,31 +48,49 @@ same top-level folder:
 
 ```
 fortibank_atm/
-|-- frontend/                # ATM kiosk app (Kivy)
+|-- frontend/                # ATM kiosk app (Kivy) - its own .venv
 |   |-- main.py              #   App entry point, screens and business logic
 |   |-- fortibank.kv         #   Kivy UI (screens, widgets, styles)
 |   |-- settings.py          #   Settings persistence + ES/EN translations
 |   |-- settings.txt         #   Runtime settings (gitignored - holds the admin PIN)
 |   |-- requirements.txt     #   Pinned Python dependencies
-|   |-- start_atm.sh         #   Launcher (waits for X, sets 1024x600, runs the app)
 |   |-- 50.png 100.png 200.png 500.png   # Bill images
 |   |-- visa.png mastercard.png          # Card brand images
 |   `-- atm_insertion.mp3 counting.mp3 beep.wav   # Sounds
-|-- backend/                 # FortiBank Core Backend (FastAPI) + install guide
+|-- backend/                 # FortiBank Core Backend (FastAPI) - its own venv
 |   |-- main.py
 |   |-- requirements.txt
-|   |-- fortibank-backend.service
 |   |-- install.sh
 |   `-- README.md
-|-- deploy/                  # systemd units, launcher, ALSA/audio fix (Orange Pi)
+|-- deploy/                  # Per-app deployment (systemd, ALSA/audio fix)
+|   |-- frontend/            #   Orange Pi kiosk units + launcher + audio fix
+|   `-- backend/             #   FastAPI systemd unit
 |-- docs/                    # HDMI audio fix + lab backend access notes
+|-- start_atm.sh             # Launcher (waits for X, sets 1024x600, runs frontend)
+|-- Makefile                 # Task runner: install / run / test / deploy / clean
 |-- README.md                # This file
-`-- .venv/                   # Virtual environment (gitignored)
+`-- .venv/                   # (legacy root venv, gitignored)
 ```
 
-The frontend lives in `frontend/`; the backend lives in `backend/`. Everything is
+The frontend lives in `frontend/`; the backend lives in `backend/`; deployment
+artifacts live in `deploy/frontend/` and `deploy/backend/`. Everything is
 version-controlled from the repository root, so a single clone contains all the
 code.
+
+## Common tasks (Makefile)
+
+| Command | Description |
+|---------|-------------|
+| `make install` | Create `frontend/.venv` + `backend/venv` and install deps |
+| `make run-frontend` | Run the Kivy ATM app |
+| `make run-backend` | Run the FastAPI backend (uvicorn, port 8000) |
+| `make test` | Syntax-check all Python sources |
+| `make deploy-frontend` | rsync `frontend/` to `ATM_HOST` (default `orangepi@192.168.210.8`) |
+| `make deploy-backend` | rsync `backend/` to `BACKEND_HOST` (default `jelopez@192.168.241.6`) |
+| `make clean` | Remove venvs and `__pycache__` |
+
+Override the deploy targets on the command line, e.g.
+`make deploy-frontend ATM_HOST=user@host ATM_DIR=/opt/fortibank_atm`.
 
 ---
 
@@ -87,21 +105,32 @@ code.
 
 ## Installation & Setup
 
+There are **two apps** in this monorepo, each with its own virtual environment:
+`frontend/` (the Kivy ATM) and `backend/` (the FastAPI core).
+
 ```bash
 cd /home/orangepi/fortibank_atm
-python3 -m venv .venv
-source .venv/bin/activate
 
-pip install --upgrade pip
-pip install -r frontend/requirements.txt
+# Create both virtualenvs and install dependencies
+make install
+# (or manually:)
+#   python3 -m venv frontend/.venv && frontend/.venv/bin/pip install -r frontend/requirements.txt
+#   cd backend && ./install.sh
 ```
 
-Run the app (frontend):
+Run the frontend (ATM app):
 
 ```bash
-./start_atm.sh          # recommended (waits for X, sets 1024x600, runs the app)
-# or:
-cd frontend && python main.py
+make run-frontend
+# or: ./start_atm.sh          # waits for X, sets 1024x600, runs the app
+# or: cd frontend && .venv/bin/python main.py
+```
+
+Run the backend (FastAPI):
+
+```bash
+make run-backend
+# or: cd backend && venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 The backend lives in [`backend/`](backend/) - see its README for install/run steps.

@@ -6,11 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
-# Virtual environment
+# Virtual environment (per-app venvs: frontend/.venv, backend/venv)
 .venv/
 venv/
 env/
 cajero_env/
+frontend/.venv/
+backend/venv/
 
 # Distribution / packaging
 .Python

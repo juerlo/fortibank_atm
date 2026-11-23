@@ -5,10 +5,9 @@ Thanks for your interest in FortiBank ATM!
 ## Development setup
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r frontend/requirements.txt
-python frontend/main.py
+python3 -m venv frontend/.venv
+frontend/.venv/bin/pip install -r frontend/requirements.txt
+frontend/.venv/bin/python frontend/main.py
 ```
 
 See the [README](README.md) for the full setup, configuration and the admin menu.

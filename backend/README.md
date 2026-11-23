@@ -1,4 +1,4 @@
-﻿# FortiBank Core Backend (SASE SUMMIT - Vulnerable Edition)
+# FortiBank Core Backend (SASE SUMMIT - Vulnerable Edition)
 
 FastAPI service that simulates the bank core for the FortiBank ATM kiosk. It
 exposes one endpoint, `POST /api/withdraw`, which validates a card + PIN, checks
@@ -43,11 +43,11 @@ Interactive docs: `http://<host>:8000/docs` (Swagger UI).
 
 ## Run as a systemd service
 
-`fortibank-backend.service` is a template. Adjust `User`, `Group`,
+`deploy/backend/fortibank-backend.service` is a template. Adjust `User`, `Group`,
 `WorkingDirectory` and the venv path, then install it:
 
 ```bash
-sudo cp fortibank-backend.service /etc/systemd/system/
+sudo cp deploy/backend/fortibank-backend.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable --now fortibank-backend
 systemctl status fortibank-backend

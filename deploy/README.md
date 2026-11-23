@@ -1,4 +1,4 @@
-﻿# Deployment: systemd units & config
+# Deployment: systemd units & config
 
 These files are installed on the Orange Pi Zero 3 (Ubuntu Server 24.04) to run the
 FortiBank ATM kiosk. They are **not** part of the Python runtime; they configure how
@@ -57,19 +57,19 @@ See `docs/HDMI_AUDIO_FIX.md` for the full procedure.
 
 ```bash
 # On the Orange Pi
-sudo cp deploy/fortibank-x.service           /etc/systemd/system/
-sudo cp deploy/fortibank-app.service         /etc/systemd/system/
-sudo cp deploy/fortibank-vnc.service         /etc/systemd/system/
-sudo cp deploy/h618-hdmi-audio-fix.service   /etc/systemd/system/
-sudo cp deploy/start_atm.sh                  /home/orangepi/fortibank_atm/
+sudo cp deploy/frontend/fortibank-x.service           /etc/systemd/system/
+sudo cp deploy/frontend/fortibank-app.service         /etc/systemd/system/
+sudo cp deploy/frontend/fortibank-vnc.service         /etc/systemd/system/
+sudo cp deploy/frontend/h618-hdmi-audio-fix.service   /etc/systemd/system/
+sudo cp deploy/frontend/start_atm.sh                  /home/orangepi/fortibank_atm/
 sudo chmod +x                                /home/orangepi/fortibank_atm/start_atm.sh
-sudo cp deploy/asound.conf                   /etc/asound.conf
-sudo cp deploy/fix_h618_hdmi_audio.py        /usr/local/bin/
+sudo cp deploy/frontend/asound.conf                   /etc/asound.conf
+sudo cp deploy/frontend/fix_h618_hdmi_audio.py        /usr/local/bin/
 sudo chmod +x                                /usr/local/bin/fix_h618_hdmi_audio.py
 
 # DTB audio patch (one-time)
 sudo apt-get install -y device-tree-compiler
-sudo bash deploy/patch-dtb-audio.sh
+sudo bash deploy/frontend/patch-dtb-audio.sh
 
 # SDL2 audio env for the app service
 sudo mkdir -p /etc/systemd/system/fortibank-app.service.d

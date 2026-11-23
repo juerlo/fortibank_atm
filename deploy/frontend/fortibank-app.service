@@ -8,7 +8,7 @@ Type=simple
 User=orangepi
 SupplementaryGroups=video render
 Environment=DISPLAY=:2
-WorkingDirectory=/home/orangepi/fortibank_atm/frontend
+WorkingDirectory=/home/orangepi/fortibank_atm
 ExecStart=/home/orangepi/fortibank_atm/start_atm.sh
 Restart=on-failure
 RestartSec=3
