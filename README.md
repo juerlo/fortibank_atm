@@ -1,5 +1,10 @@
 ﻿# FortiBank ATM
 
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Kivy](https://img.shields.io/badge/Kivy-2.3.2-5b8db8)](https://kivy.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-Orange%20Pi%20Zero%203-orange)](https://www.orangepi.org/)
+
 A desktop ATM simulator built with **Python** and **Kivy**. It mimics a full ATM
 workflow: card insertion, PIN entry, menu navigation, amount selection, transaction
 processing, bill dispensing animation and result display. The frontend talks to a
@@ -185,6 +190,15 @@ half speed (24 kHz instead of 48 kHz), the Device Tree is missing
 (card 0) rather than HDMI (card 2). The full fix - DTB patch, ALSA `dmix`
 routing, the `AHUB_I2S1_CLKD` register-watcher daemon and the SDL2 env drop-in -
 is documented in **[docs/HDMI_AUDIO_FIX.md](docs/HDMI_AUDIO_FIX.md)**.
+
+---
+
+## Contributing / License / Security
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) - development setup and guidelines
+- [SECURITY.md](SECURITY.md) - how to report vulnerabilities
+- [CHANGELOG.md](CHANGELOG.md) - release notes
+- [LICENSE](LICENSE) - MIT license
 
 ---
 
