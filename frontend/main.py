@@ -701,12 +701,15 @@ class Manager(ScreenManager):
 
 
 class OOSOverlay(FloatLayout):
-    """Full-screen, interaction-blocking overlay shown while the backend is down.
+    """Interaction-blocking overlay shown while the backend is down.
 
-    It is added directly to the Window (above the ScreenManager) so it covers
-    every screen. While ``active`` it swallows all touches, so the ATM
-    underneath cannot be used until the backend is reachable again.
+    It is added directly to the Window (above the ScreenManager) and covers the
+    whole screen **except the top header**, so the FortiBank logo stays visible
+    and the secret admin menu remains reachable. While ``active`` it swallows
+    touches in the covered area so the ATM cannot be used.
     """
+
+    HEADER_H = 64  # keep the header (logo) visible/tappable
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -715,7 +718,7 @@ class OOSOverlay(FloatLayout):
         self.pos = (0, 0)
         with self.canvas.before:
             Color(0.30, 0.02, 0.02, 0.97)
-            self._bg = Rectangle(pos=self.pos, size=self.size)
+            self._bg = Rectangle(pos=self.pos, size=self._bg_size())
         self.bind(pos=self._sync_bg, size=self._sync_bg)
         self.label = Label(
             text="", font_size='80sp', bold=True, color=(1, 1, 1, 1),
@@ -724,17 +727,23 @@ class OOSOverlay(FloatLayout):
         self.add_widget(self.label)
         Window.bind(size=self._sync_window)
 
+    def _bg_size(self):
+        # Red only below the header; the top HEADER_H px stay transparent so the
+        # header (and its logo) remains visible.
+        return (Window.width, max(0, Window.height - self.HEADER_H))
+
     def _sync_window(self, *a):
         self.size = Window.size
         self.pos = (0, 0)
 
     def _sync_bg(self, *a):
         self._bg.pos = self.pos
-        self._bg.size = self.size
+        self._bg.size = self._bg_size()
 
     def on_touch_down(self, touch):
-        # While out of service, swallow every touch so the ATM is unusable.
-        if self.active:
+        # Block the ATM in the covered area, but let the header (logo) through so
+        # the secret admin menu (5 taps) stays reachable while out of service.
+        if self.active and touch.pos[1] < (Window.height - self.HEADER_H):
             return True
         return super().on_touch_down(touch)
 
@@ -748,6 +757,9 @@ class FortiBankApp(App):
     timer_event = None
     time_left = 30
     SCREENSAVER_SKIP = {'processing', 'dispensing', 'cardanim', 'screensaver'}
+    # Screens where the out-of-service overlay steps aside so the secret admin
+    # menu stays reachable while the backend is down.
+    ADMIN_SCREENS = {'adminpin', 'adminmenu', 'adminip', 'savercfg'}
     # Backend keep-alive: how often (seconds) to re-check backend reachability.
     KEEPALIVE_INTERVAL = 5
 
@@ -1182,13 +1194,14 @@ class FortiBankApp(App):
         self._refresh_oos_overlay()
 
     def _refresh_oos_overlay(self):
-        # The "Fuera de Servicio" overlay must not hide the screensaver: while
-        # the screensaver is showing it steps aside, and it reappears (if the
-        # backend is still down) as soon as the screensaver is dismissed.
+        # The "Fuera de Servicio" overlay steps aside for the screensaver and
+        # for the admin screens, so the secret menu stays reachable while the
+        # backend is down. It reappears when the user leaves those screens.
         overlay = getattr(self, "oos_overlay", None)
         if overlay is None or self.root is None:
             return
-        show = self.oos_active and self.root.current != 'screensaver'
+        hide = self.root.current == 'screensaver' or self.root.current in self.ADMIN_SCREENS
+        show = self.oos_active and not hide
         overlay.active = show
         overlay.opacity = 1 if show else 0
 

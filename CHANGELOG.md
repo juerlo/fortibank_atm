@@ -17,6 +17,9 @@ All notable changes to this project are documented here.
 - Frontend: the "Fuera de Servicio" / "Out of Service" overlay now steps aside
   for the screensaver — the screensaver still runs while out of service, and
   the message reappears as soon as the screensaver is dismissed.
+- Frontend: the out-of-service overlay keeps the header (FortiBank logo)
+  visible and steps aside on the admin screens, so the secret admin menu stays
+  reachable while the backend is down.
 - Backend: serialize all SQLite access behind a module-level `threading.Lock`
   (`db_lock`) so the funds check + withdrawal are atomic under FastAPI's
   threadpool (no lost updates / double-spends under concurrent requests).
