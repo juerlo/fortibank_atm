@@ -14,6 +14,9 @@ All notable changes to this project are documented here.
   with verification and troubleshooting.
 
 ### Changed
+- Frontend: the "Fuera de Servicio" / "Out of Service" overlay now steps aside
+  for the screensaver — the screensaver still runs while out of service, and
+  the message reappears as soon as the screensaver is dismissed.
 - Backend: serialize all SQLite access behind a module-level `threading.Lock`
   (`db_lock`) so the funds check + withdrawal are atomic under FastAPI's
   threadpool (no lost updates / double-spends under concurrent requests).

@@ -812,6 +812,7 @@ class FortiBankApp(App):
             self._beep()
         self._last_activity = time.time()
         self.root.current = screen_name
+        self._refresh_oos_overlay()
 
     def insert_card(self, card):
         self._beep()
@@ -1178,8 +1179,18 @@ class FortiBankApp(App):
         self.oos_active = active
         self.oos_text = self.t("out_of_service") if active else ""
         self.oos_label.text = self.oos_text
-        self.oos_overlay.active = active
-        self.oos_overlay.opacity = 1 if active else 0
+        self._refresh_oos_overlay()
+
+    def _refresh_oos_overlay(self):
+        # The "Fuera de Servicio" overlay must not hide the screensaver: while
+        # the screensaver is showing it steps aside, and it reappears (if the
+        # backend is still down) as soon as the screensaver is dismissed.
+        overlay = getattr(self, "oos_overlay", None)
+        if overlay is None or self.root is None:
+            return
+        show = self.oos_active and self.root.current != 'screensaver'
+        overlay.active = show
+        overlay.opacity = 1 if show else 0
 
     @staticmethod
     def _valid_ip(ip):
@@ -1213,9 +1224,6 @@ class FortiBankApp(App):
     # ------------------------------------------------------------------
     def _check_idle(self, dt):
         if self.root is None:
-            return
-        # Never start the screensaver / screen-off while out of service.
-        if self.oos_active:
             return
         if self._screen_off:
             return
