@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Query
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import datetime
 import random
@@ -16,8 +17,7 @@ def init_db():
     # check_same_thread=False permite que FastAPI consulte SQLite asíncronamente
     conn = sqlite3.connect("fortibank_vuln.db", check_same_thread=False)
     c = conn.cursor()
-    c.execute("DROP TABLE IF EXISTS cards")
-    c.execute("CREATE TABLE cards (card_number TEXT, pin TEXT, balance REAL, name TEXT, brand TEXT)")
+    c.execute("CREATE TABLE IF NOT EXISTS cards (card_number TEXT, pin TEXT, balance REAL, name TEXT, brand TEXT)")
     
     users = [
         ("4591061418966700", "1234", 100.00, "Ernesto López", "VISA"),
@@ -30,8 +30,10 @@ def init_db():
         ("2630415126271802", "1234", 11000.00, "Tania Bear", "MASTERCARD"),
     ]
     
-    c.executemany("INSERT INTO cards VALUES (?, ?, ?, ?, ?)", users)
-    conn.commit()
+    c.execute("SELECT COUNT(*) FROM cards")
+    if c.fetchone()[0] == 0:
+        c.executemany("INSERT INTO cards VALUES (?, ?, ?, ?, ?)", users)
+        conn.commit()
     return conn
 
 # Inicializamos la base de datos al arrancar el servidor
@@ -185,6 +187,98 @@ def process_atm_transaction(request: ATMRequest, debug: str | None = Query(defau
         "iso_request": iso_req_str,
         "iso_response": iso_resp_str
     }
+
+# Carga del mini panel web de administración de tarjetas (cards_web.html).
+_cards_html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cards_web.html")
+try:
+    CARDS_HTML = open(_cards_html_path, encoding="utf-8").read()
+except Exception:
+    CARDS_HTML = "<h1>FortiBank</h1><p>No se pudo cargar cards_web.html</p>"
+
+
+# -------------------------------------------------------------------
+# 5. ADMINISTRACIÓN DE TARJETAS (API CRUD + mini web app)
+# -------------------------------------------------------------------
+class CardCreate(BaseModel):
+    card_number: str
+    pin: str
+    name: str
+    brand: str = "VISA"
+    balance: float = 0.0
+
+
+class CardUpdate(BaseModel):
+    pin: str | None = None
+    name: str | None = None
+    brand: str | None = None
+    balance: float | None = None
+
+
+def _cards_as_dicts():
+    with db_lock:
+        cur = db_conn.cursor()
+        cur.execute("SELECT card_number, pin, balance, name, brand FROM cards ORDER BY card_number")
+        rows = cur.fetchall()
+    return [
+        {"card_number": r[0], "pin": r[1], "balance": r[2], "name": r[3], "brand": r[4]}
+        for r in rows
+    ]
+
+
+@app.get("/api/cards")
+def list_cards():
+    return _cards_as_dicts()
+
+
+@app.post("/api/cards")
+def create_card(card: CardCreate):
+    with db_lock:
+        cur = db_conn.cursor()
+        cur.execute(
+            "INSERT INTO cards (card_number, pin, balance, name, brand) VALUES (?, ?, ?, ?, ?)",
+            (card.card_number, card.pin, card.balance, card.name, card.brand),
+        )
+        db_conn.commit()
+    return {"status": "ok"}
+
+
+@app.put("/api/cards/{card_number}")
+def update_card(card_number: str, card: CardUpdate):
+    with db_lock:
+        cur = db_conn.cursor()
+        fields, vals = [], []
+        if card.pin is not None:
+            fields.append("pin = ?")
+            vals.append(card.pin)
+        if card.name is not None:
+            fields.append("name = ?")
+            vals.append(card.name)
+        if card.brand is not None:
+            fields.append("brand = ?")
+            vals.append(card.brand)
+        if card.balance is not None:
+            fields.append("balance = ?")
+            vals.append(card.balance)
+        if fields:
+            vals.append(card_number)
+            cur.execute("UPDATE cards SET " + ", ".join(fields) + " WHERE card_number = ?", vals)
+            db_conn.commit()
+    return {"status": "ok"}
+
+
+@app.delete("/api/cards/{card_number}")
+def delete_card(card_number: str):
+    with db_lock:
+        cur = db_conn.cursor()
+        cur.execute("DELETE FROM cards WHERE card_number = ?", (card_number,))
+        db_conn.commit()
+    return {"status": "ok"}
+
+
+@app.get("/")
+def admin_webapp():
+    return HTMLResponse(CARDS_HTML)
+
 
 # Arranque del servidor directamente desde el script
 if __name__ == "__main__":

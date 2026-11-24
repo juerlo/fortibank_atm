@@ -120,6 +120,14 @@ cat backend/main.py | \
   '
 ```
 
+Also upload the card-management web asset if it changed (it is served at `/`):
+
+```bash
+cat backend/cards_web.html | \
+  sshpass -p 'Fortinet1.' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+  root@192.168.241.11 'cat > /app/cards_web.html && echo HTML_OK'
+```
+
 If `requirements.txt` changed, upload it too and reinstall:
 
 ```bash

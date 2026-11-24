@@ -5,6 +5,12 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- Frontend: the card carousel is now loaded from the backend
+  (`GET /api/cards`) and auto-refreshes every 15 s, so cards added, removed or
+  edited in the backend appear without restarting the ATM app.
+- Backend: card-management REST API (`GET/POST/PUT/DELETE /api/cards`) plus a
+  small built-in web app at `/` to add, edit and remove cards. The SQLite
+  database is now persistent (seeded only when empty).
 - Frontend: continuous backend keep-alive. A background thread polls the core
   (`GET /docs`) every 5 s and toggles a full-screen, interaction-blocking
   overlay that reads "Out of Service" / "Fuera de Servicio" while the backend is

@@ -51,16 +51,8 @@ FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
 # Backend URL: env override wins, otherwise built from the saved backend IP.
 BACKEND_URL = os.environ.get("ATM_BACKEND_URL")
 
-CARDS = [
-    {"num": "4591061418966700", "name": "Ernesto López", "brand": "VISA"},
-    {"num": "5496139865798488", "name": "Sebastian Russo", "brand": "MASTERCARD"},
-    {"num": "4547184656089376", "name": "Miguel Juarez", "brand": "VISA"},
-    {"num": "2641930362375908", "name": "Emilio Parbull", "brand": "MASTERCARD"},
-    {"num": "4803178204857473", "name": "Luis Hernandez", "brand": "VISA"},
-    {"num": "5241513403894801", "name": "Guillermo Martell", "brand": "MASTERCARD"},
-    {"num": "4914070832130801", "name": "Roberto Rios", "brand": "VISA"},
-    {"num": "2630415126271802", "name": "Tania Bear", "brand": "MASTERCARD"},
-]
+# The card catalogue is fetched from the backend (GET /api/cards) into
+# ``FortiBankApp.cards`` and kept in sync by ``_refresh_cards``.
 
 
 def _gradient_texture(c1, c2, diagonal=True, size=128):
@@ -170,9 +162,14 @@ class PushButton(Button):
 class ScreenInsert(ScreenBase):
     def on_kv_post(self, base_widget):
         super().on_kv_post(base_widget)
+        self.build_cards(App.get_running_app().cards)
+
+    def build_cards(self, cards):
         container = self.ids.card_container
-        for c in CARDS:
-            formatted = " ".join(c["num"][i:i+4] for i in range(0, 16, 4))
+        container.clear_widgets()
+        for c in cards:
+            num = c.get("num", "")
+            formatted = " ".join(num[i:i+4] for i in range(0, len(num), 4))
 
             card = RelativeLayout(size_hint=(None, None), size=(320, 200))
 
@@ -771,6 +768,8 @@ class FortiBankApp(App):
     ADMIN_SCREENS = {'adminpin', 'adminmenu', 'adminip', 'savercfg'}
     # Backend keep-alive: how often (seconds) to re-check backend reachability.
     KEEPALIVE_INTERVAL = 5
+    # How often (seconds) to refresh the card catalogue from the backend.
+    CARDS_INTERVAL = 15
 
     def build(self):
         self.settings = Settings()
@@ -784,6 +783,8 @@ class FortiBankApp(App):
         self._prev_screen = 'insert'
         self._screen_off = False
         self._oos_state = None
+        self.cards = []
+        self._cards_sig = None
         Clock.schedule_interval(self.update_clock, 1)
         Clock.schedule_interval(self._check_idle, 5)
         self.update_clock(0)
@@ -1012,6 +1013,7 @@ class FortiBankApp(App):
         # Start the background keep-alive that watches the backend and toggles
         # the "Out of Service" / "Fuera de Servicio" overlay.
         threading.Thread(target=self._keepalive_loop, daemon=True).start()
+        threading.Thread(target=self._cards_loop, daemon=True).start()
 
     def t(self, key, *args):
         text = translate(self.settings.language, key)
@@ -1167,13 +1169,17 @@ class FortiBankApp(App):
     # ------------------------------------------------------------------
     # Backend keep-alive (drives the "Out of Service" banner)
     # ------------------------------------------------------------------
-    def _health_url(self):
-        """Lightweight URL used to check whether the backend is reachable."""
+    def _api_url(self, path):
+        """Build an absolute backend URL for the given API path."""
         if BACKEND_URL:
             base = BACKEND_URL.split("/api/")[0].rstrip("/")
         else:
             base = "http://{0}:8000".format(self.settings.backend_ip)
-        return base + "/docs"
+        return base + path
+
+    def _health_url(self):
+        """Lightweight URL used to check whether the backend is reachable."""
+        return self._api_url("/docs")
 
     def _backend_reachable(self):
         try:
@@ -1213,6 +1219,44 @@ class FortiBankApp(App):
         show = self.oos_active and not hide
         overlay.active = show
         overlay.opacity = 1 if show else 0
+
+    # ------------------------------------------------------------------
+    # Card catalogue (fetched from the backend, kept in sync)
+    # ------------------------------------------------------------------
+    def _cards_loop(self):
+        """Continuously refresh the card list from the backend."""
+        while True:
+            self._refresh_cards()
+            time.sleep(self.CARDS_INTERVAL)
+
+    def _refresh_cards(self):
+        try:
+            r = requests.get(self._api_url("/api/cards"), timeout=5)
+            if r.status_code != 200:
+                return
+            data = r.json()
+            if not isinstance(data, list):
+                return
+            cards = [
+                {"num": c.get("card_number", ""), "name": c.get("name", ""), "brand": c.get("brand", "")}
+                for c in data if c.get("card_number")
+            ]
+        except Exception:
+            return
+        sig = tuple(sorted((c["num"], c["name"], c["brand"]) for c in cards))
+        if sig == self._cards_sig:
+            return
+        self._cards_sig = sig
+        Clock.schedule_once(lambda dt: self._apply_cards(cards), 0)
+
+    def _apply_cards(self, cards):
+        self.cards = cards
+        if self.root is None:
+            return
+        try:
+            self.root.get_screen('insert').build_cards(cards)
+        except Exception:
+            pass
 
     @staticmethod
     def _valid_ip(ip):

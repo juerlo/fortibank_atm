@@ -30,6 +30,10 @@ on-device configuration.
 - **Backend keep-alive** - full-screen "Out of Service" / "Fuera de
   Servicio" overlay (blocks the ATM) while the core is unreachable, auto-cleared
   on reconnect
+- **Backend-driven cards** - the card carousel is loaded from the backend
+  (`GET /api/cards`) and auto-refreshes when cards are added/removed/edited
+- **Card admin web app** - `http://<backend>:8000/` to add, edit and delete
+  cards
 
 ---
 

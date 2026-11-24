@@ -1,8 +1,9 @@
 # FortiBank Core Backend (SASE SUMMIT - Vulnerable Edition)
 
 FastAPI service that simulates the bank core for the FortiBank ATM kiosk. It
-exposes one endpoint, `POST /api/withdraw`, which validates a card + PIN, checks
-the balance, applies the withdrawal and returns ISO 8583 request/response frames.
+exposes `POST /api/withdraw` (card + PIN validation, balance check, withdrawal,
+ISO 8583 request/response frames) and a card-management API + web app (see
+below).
 
 > **WARNING - lab only.** This service contains deliberate backdoors (SQL
 > injection, command injection, path traversal, `eval` RCE, auth bypass). Do not
@@ -135,9 +136,10 @@ All demo cards use PIN `1234`. Initial balances are defined in `init_db()`:
 | 4914070832130801 | Roberto Rios | VISA | 200000.00 |
 | 2630415126271802 | Tania Bear | MASTERCARD | 11000.00 |
 
-Balances are stored in `fortibank_vuln.db` and persist across restarts until
-`init_db()` re-runs (which drops and recreates the table on every start - so
-balances reset when the service restarts).
+Cards are stored in `fortibank_vuln.db`, which is persistent: `init_db()` only
+seeds the demo cards when the `cards` table is empty, so balances and any cards
+added/edited through the web app survive restarts. Delete `fortibank_vuln.db` to
+reseed the demo data.
 
 ## Concurrency & data
 
@@ -145,8 +147,33 @@ balances reset when the service restarts).
   (`db_lock` in `main.py`), so the funds check and the withdrawal are atomic
   even though FastAPI runs the endpoint in a threadpool. This prevents lost
   updates / double-spends under concurrent requests.
-- `init_db()` drops and recreates the `cards` table on every start, so demo
-  balances reset whenever the service (or container) restarts.
+- `init_db()` seeds the `cards` table only when it is empty, so balances and
+  card edits persist across restarts (delete `fortibank_vuln.db` to reseed).
+
+## Card management (API + web app)
+
+A small admin web app is served at the backend root (`http://<host>:8000/`) to
+list, add, edit and delete cards. It is backed by a REST API (all under the same
+`db_lock`):
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/cards` | List all cards (card_number, pin, balance, name, brand) |
+| `POST` | `/api/cards` | Add a card |
+| `PUT` | `/api/cards/{card_number}` | Edit a card (pin/name/brand/balance) |
+| `DELETE` | `/api/cards/{card_number}` | Delete a card |
+
+The ATM frontend polls `GET /api/cards` every 15 s and rebuilds its card
+carousel when the set of cards changes, so cards added/removed/edited here appear
+at the kiosk automatically.
+
+Example:
+
+```bash
+curl -X POST http://192.168.241.11:8000/api/cards \
+  -H 'Content-Type: application/json' \
+  -d '{"card_number":"4111111111111111","pin":"1234","name":"Test User","brand":"VISA","balance":100}'
+```
 
 ## Deliberate backdoors (lab exercises)
 
