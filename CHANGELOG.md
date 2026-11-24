@@ -46,9 +46,8 @@ All notable changes to this project are documented here.
   units, YAML).
 
 ### Fixed
-- Frontend: the configured screen-off timeout now behaves exactly like tapping
-  the clock 5 times — the display blanks immediately (DPMS off, no light) and
-  any touch wakes it; it can also trigger while the screensaver is running.
+- Frontend: screen-off (5-tap clock and the idle timeout) now uses DPMS standby
+  (backlight off, screen dark) and any touch wakes it.
 - Corrected the admin menu label "SALTOPANTALLAS" → "SALVAPANTALLAS".
 - `backend/install.sh`: the BOM before `#!/usr/bin/env bash` broke direct
   execution; the shebang is now clean.

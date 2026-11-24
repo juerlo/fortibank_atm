@@ -1369,10 +1369,12 @@ class FortiBankApp(App):
         self._refresh_saver_cfg()
 
     def _turn_screen_off(self):
+        # Put the monitor into DPMS standby: the backlight goes off (screen is
+        # dark) while the monitor stays in standby rather than fully dropping.
+        self._screen_off = True
         try:
-            subprocess.run(["xset", "dpms", "force", "off"], check=False,
+            subprocess.run(["xset", "dpms", "force", "standby"], check=False,
                            env=dict(os.environ, DISPLAY=":2"))
-            self._screen_off = True
         except Exception:
             pass
 

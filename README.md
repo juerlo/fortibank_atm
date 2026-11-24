@@ -204,16 +204,16 @@ Both are configurable in the admin menu under **SALVAPANTALLAS / SCREENSAVER**
   - Floating banknotes (50/100/200/500) drifting upward
   - A pulsing "Touch the screen to continue" hint
   (the clock was removed because a fixed element would itself burn in)
-- **Screen off** - after the configured idle time the HDMI output is blanked via
-  DPMS (`xset dpms force off`); any touch wakes it (`xset dpms force on`).
+- **Screen off** - after the configured idle time the display is put into DPMS
+  standby (backlight off, so the screen goes dark); any touch wakes it.
 - **Manual screen off** - tap the **clock** (top-right of the header) **5 times**
   to blank the display immediately; any touch wakes it.
 
 Any tap dismisses the screensaver and returns to the previous screen (the tap is
 consumed so it does not activate anything underneath). Both are skipped on the
 processing/dispensing/card-animation screens so they never interrupt a transaction.
-Screen-off behaves exactly like tapping the clock 5 times: the display blanks
-immediately (DPMS off, no light) and any touch wakes it. It can also trigger
+Screen-off behaves exactly like tapping the clock 5 times: the display is put
+into DPMS standby (backlight off) and any touch wakes it. It can also trigger
 while the screensaver is running (the idle timer is measured from the last touch).
 Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, seconds).
 
