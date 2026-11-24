@@ -1306,22 +1306,30 @@ class FortiBankApp(App):
             return
         if self._screen_off:
             return
-        if self.root.current in self.SCREENSAVER_SKIP:
+        current = self.root.current
+        # Never blank the display during a transaction or card animation.
+        if current in ('processing', 'dispensing', 'cardanim'):
             return
         elapsed = time.time() - self._last_activity
         screenoff = self.settings.screenoff_timeout
         saver = self.settings.saver_timeout
+        # Screen-off can also happen while the screensaver is running.
         if screenoff > 0 and elapsed >= screenoff:
             self._turn_screen_off()
             return
-        if saver > 0 and elapsed >= saver:
+        # Show the screensaver only if it isn't already up.
+        if saver > 0 and current not in self.SCREENSAVER_SKIP and elapsed >= saver:
             self._show_screensaver()
 
     def _show_screensaver(self):
         if self.root is None or self.root.current == 'screensaver':
             return
         self._prev_screen = self.root.current
-        self.go_to('screensaver', beep=False)
+        # Switch without resetting the idle timer, so the screen-off timeout is
+        # measured from the last real activity (not from when the screensaver
+        # appeared).
+        self.root.current = 'screensaver'
+        self._refresh_oos_overlay()
 
     def dismiss_screensaver(self):
         if self.root is None or self.root.current != 'screensaver':

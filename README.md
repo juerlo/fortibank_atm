@@ -212,6 +212,9 @@ Both are configurable in the admin menu under **SALVAPANTALLAS / SCREENSAVER**
 Any tap dismisses the screensaver and returns to the previous screen (the tap is
 consumed so it does not activate anything underneath). Both are skipped on the
 processing/dispensing/card-animation screens so they never interrupt a transaction.
+Screen-off still applies **while the screensaver is running** — the idle timer is
+measured from the last touch, so the display blanks at `screenoff_timeout` even
+if the screensaver is showing.
 Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, seconds).
 
 ---
