@@ -1313,10 +1313,8 @@ class FortiBankApp(App):
         elapsed = time.time() - self._last_activity
         screenoff = self.settings.screenoff_timeout
         saver = self.settings.saver_timeout
-        # Screen-off behaves exactly like 5 taps on the clock (leaves the
-        # screensaver first, then blanks the display).
         if screenoff > 0 and elapsed >= screenoff:
-            self._screen_off_now()
+            self._turn_screen_off()
             return
         # Show the screensaver only if it isn't already up.
         if saver > 0 and current not in self.SCREENSAVER_SKIP and elapsed >= saver:
@@ -1369,13 +1367,6 @@ class FortiBankApp(App):
     def set_screenoff_timeout(self, seconds):
         self.settings.set('screenoff_timeout', str(int(seconds)), persist=False)
         self._refresh_saver_cfg()
-
-    def _screen_off_now(self):
-        # Behave exactly like 5 taps on the clock: if the screensaver is
-        # showing, leave it first, then blank the display. Any touch wakes it.
-        if self.root is not None and self.root.current == 'screensaver':
-            self.dismiss_screensaver()
-        self._turn_screen_off()
 
     def _turn_screen_off(self):
         try:

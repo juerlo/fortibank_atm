@@ -212,9 +212,9 @@ Both are configurable in the admin menu under **SALVAPANTALLAS / SCREENSAVER**
 Any tap dismisses the screensaver and returns to the previous screen (the tap is
 consumed so it does not activate anything underneath). Both are skipped on the
 processing/dispensing/card-animation screens so they never interrupt a transaction.
-Screen-off behaves exactly like tapping the clock 5 times: if the screensaver is
-showing it is dismissed first, then the display blanks at `screenoff_timeout`
-(the idle timer is measured from the last touch).
+Screen-off behaves exactly like tapping the clock 5 times: the display blanks
+immediately (DPMS off, no light) and any touch wakes it. It can also trigger
+while the screensaver is running (the idle timer is measured from the last touch).
 Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, seconds).
 
 ---
