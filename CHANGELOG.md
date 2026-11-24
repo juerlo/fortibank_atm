@@ -46,9 +46,9 @@ All notable changes to this project are documented here.
   units, YAML).
 
 ### Fixed
-- Frontend: the configured screen-off timeout now also applies while the
-  screensaver is running (previously `_check_idle` skipped it on the screensaver
-  screen); the idle timer is measured from the last touch.
+- Frontend: the configured screen-off timeout now behaves exactly like tapping
+  the clock 5 times — if the screensaver is running it is dismissed first, then
+  the display blanks (previously `_check_idle` skipped it on the screensaver).
 - Corrected the admin menu label "SALTOPANTALLAS" → "SALVAPANTALLAS".
 - `backend/install.sh`: the BOM before `#!/usr/bin/env bash` broke direct
   execution; the shebang is now clean.
