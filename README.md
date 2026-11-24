@@ -206,6 +206,8 @@ Both are configurable in the admin menu under **SALVAPANTALLAS / SCREENSAVER**
   (the clock was removed because a fixed element would itself burn in)
 - **Screen off** - after the configured idle time the HDMI output is blanked via
   DPMS (`xset dpms force off`); any touch wakes it (`xset dpms force on`).
+- **Manual screen off** - tap the **clock** (top-right of the header) **5 times**
+  to blank the display immediately; any touch wakes it.
 
 Any tap dismisses the screensaver and returns to the previous screen (the tap is
 consumed so it does not activate anything underneath). Both are skipped on the

@@ -25,14 +25,19 @@
         background_normal: ''
         background_color: 0, 0, 0, 0
         on_release: app.register_admin_tap()
-    Label:
+    Button:
         id: clock_lbl
         text: app.clock_text
         font_size: '24sp'
         bold: True
+        color: 1, 1, 1, 1
         halign: 'right'
         valign: 'middle'
         text_size: self.size
+        background_normal: ''
+        background_down: ''
+        background_color: 0, 0, 0, 0
+        on_release: app.register_clock_tap()
 
 <BorderButton@PushButton>:
     background_normal: ''

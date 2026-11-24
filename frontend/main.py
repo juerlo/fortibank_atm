@@ -779,6 +779,8 @@ class FortiBankApp(App):
         self.snd_beep = self._load_sound("beep.wav")
         self._admin_taps = 0
         self._last_admin_tap = 0.0
+        self._clock_taps = 0
+        self._last_clock_tap = 0.0
         self._last_activity = time.time()
         self._prev_screen = 'insert'
         self._screen_off = False
@@ -1058,6 +1060,17 @@ class FortiBankApp(App):
         if self._admin_taps >= 5:
             self._admin_taps = 0
             self.open_admin_pin()
+
+    def register_clock_tap(self):
+        # 5 taps on the header clock within 3.5 s turns the display off.
+        now = time.time()
+        if now - self._last_clock_tap > 3.5:
+            self._clock_taps = 0
+        self._clock_taps += 1
+        self._last_clock_tap = now
+        if self._clock_taps >= 5:
+            self._clock_taps = 0
+            self._turn_screen_off()
 
     def open_admin_pin(self, mode='verify'):
         scr = self.root.get_screen('adminpin')

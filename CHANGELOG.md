@@ -5,6 +5,8 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- Frontend: tap the header clock 5 times to turn the display off immediately
+  (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend
   (`GET /api/cards`) and auto-refreshes every 15 s, so cards added, removed or
   edited in the backend appear without restarting the ATM app.
