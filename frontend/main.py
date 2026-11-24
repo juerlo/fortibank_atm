@@ -689,7 +689,12 @@ class Manager(ScreenManager):
             # Any activity resets the idle timer and wakes the display
             app._last_activity = time.time()
             if app._screen_off:
+                # Wake the display and consume this touch. Do NOT dismiss the
+                # screensaver here, otherwise its animation is cancelled and a
+                # frozen frame stays on screen while the next tap hits the
+                # (not-yet-visible) screen behind it.
                 app._wake_screen()
+                return True
             # While the screensaver is up, consume the touch and dismiss it
             if self.current == 'screensaver':
                 app.dismiss_screensaver()

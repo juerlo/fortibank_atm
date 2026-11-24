@@ -46,6 +46,10 @@ All notable changes to this project are documented here.
   units, YAML).
 
 ### Fixed
+- Frontend: waking from screen-off (DPMS standby) no longer dismisses the
+  screensaver in the same tap — the wake tap only wakes the display, so the
+  screensaver keeps animating and the next tap dismisses it (fixes the frozen
+  screensaver and tapping the hidden screen behind it).
 - Frontend: screen-off (5-tap clock and the idle timeout) now uses DPMS standby
   (backlight off, screen dark) and any touch wakes it.
 - Corrected the admin menu label "SALTOPANTALLAS" → "SALVAPANTALLAS".
