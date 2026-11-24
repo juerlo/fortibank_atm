@@ -175,6 +175,19 @@ curl -X POST http://192.168.241.11:8000/api/cards \
   -d '{"card_number":"4111111111111111","pin":"1234","name":"Test User","brand":"VISA","balance":100}'
 ```
 
+### Accessing the web app
+
+Open `http://192.168.241.11:8000/` (lab) — or `http://<backend-host>:8000/` — in a
+browser. The page lists the cards and lets you add / edit / delete them; it
+auto-refreshes every 10 s, and the ATM kiosk reflects changes within ~15 s.
+
+If the backend host is not directly reachable from your machine, tunnel it over
+SSH and open `http://localhost:8000/`:
+
+```bash
+ssh -L 8000:192.168.241.11:8000 root@192.168.241.11
+```
+
 ## Deliberate backdoors (lab exercises)
 
 The request model accepts extra fields used by the SASE SUMMIT exercises:

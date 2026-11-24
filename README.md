@@ -219,6 +219,10 @@ Values are stored in `settings.txt` (`saver_timeout`, `screenoff_timeout`, secon
 The ATM talks to the FortiBank Core Backend at `http://<backend_ip>:8000/api/withdraw`.
 The backend IP is configurable from the admin menu.
 
+A card-management web app is served at `http://<backend_ip>:8000/` — use it to
+add, edit or delete cards (the ATM picks up changes automatically within ~15 s).
+See [backend/README.md](backend/README.md#card-management-api--web-app).
+
 - Backend source & install guide: [backend/](backend/) (`backend/README.md`)
 - Lab backend access (SSH, paths, API): [docs/BACKEND_ACCESS.md](docs/BACKEND_ACCESS.md)
 
