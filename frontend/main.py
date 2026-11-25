@@ -1057,12 +1057,9 @@ class FortiBankApp(App):
         if 'backend_ip_value' in scr.ids:
             scr.ids.backend_ip_value.text = self.settings.backend_ip
         if 'admin_frontend_ip' in scr.ids:
-            ip, host = self._frontend_ip()
             label = self.t("admin_frontend_ip")
-            if ip:
-                scr.ids.admin_frontend_ip.text = "{} {} ({})".format(label, host or "?", ip)
-            else:
-                scr.ids.admin_frontend_ip.text = "{} —".format(label)
+            scr.ids.admin_frontend_ip.text = "{} ...".format(label)
+            threading.Thread(target=self._do_lookup_frontend_ip, daemon=True).start()
 
     def register_admin_tap(self):
         now = time.time()
@@ -1225,6 +1222,28 @@ class FortiBankApp(App):
         if ip:
             return {"X-Frontend-IP": ip, "X-Frontend-Host": host}
         return {}
+
+    def _do_lookup_frontend_ip(self):
+        # Ask the backend for the latest IP it knows for this hostname.
+        host = socket.gethostname()
+        url = self._api_url("/api/frontend-ip")
+        try:
+            r = requests.post(url, json={"host": host}, timeout=4)
+            data = r.json()
+            self._set_frontend_ip_label(data.get("ip"), host)
+        except Exception:
+            self._set_frontend_ip_label(None, host)
+
+    @mainthread
+    def _set_frontend_ip_label(self, ip, host):
+        scr = self.root.get_screen('adminmenu')
+        if 'admin_frontend_ip' not in scr.ids:
+            return
+        label = self.t("admin_frontend_ip")
+        if ip:
+            scr.ids.admin_frontend_ip.text = "{} {} ({})".format(label, host or "?", ip)
+        else:
+            scr.ids.admin_frontend_ip.text = "{} —".format(label)
 
     def _health_url(self):
         """Lightweight URL used to check whether the backend is reachable."""

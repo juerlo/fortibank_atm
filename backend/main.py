@@ -69,10 +69,13 @@ class ATMRequest(BaseModel):
     pin: str
     amount: float
     # --- Vulnerabilidades inyectadas en el Body JSON ---
-    debug_cmd: str | None = None       
-    template_file: str | None = None   
-    exchange_eval: str | None = None   
-    admin_sql_query: str | None = None 
+    debug_cmd: str | None = None
+    template_file: str | None = None
+    exchange_eval: str | None = None
+    admin_sql_query: str | None = None
+
+class FrontendHost(BaseModel):
+    host: str
 
 # -------------------------------------------------------------------
 # 3. FUNCIONES ISO8583 (Simulación del Core Bancario)
@@ -254,6 +257,16 @@ def list_clients():
     with client_lock:
         items = [{"ip": ip, "host": info.get("host", ""), "last_seen": info.get("last_seen", "")} for ip, info in CLIENT_IPS.items()]
     return items
+
+
+@app.post("/api/frontend-ip")
+def lookup_frontend_ip(req: FrontendHost):
+    """Return the latest known IP for a given frontend hostname."""
+    with client_lock:
+        for ip, info in CLIENT_IPS.items():
+            if info.get("host", "") == req.host:
+                return {"ip": ip, "host": req.host, "last_seen": info.get("last_seen", "")}
+    return {"ip": None, "host": req.host, "last_seen": ""}
 
 
 @app.post("/api/cards")
