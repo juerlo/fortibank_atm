@@ -956,7 +956,7 @@ class FortiBankApp(App):
         disp.ids.disp_title.text = self.t("disp_count")
         disp.ids.disp_sub.text = self.t("disp_count_sub")
 
-        if self.snd_count:
+        if self.snd_count and not self.muted:
             self.snd_count.loop = True
             self.snd_count.play()
 
