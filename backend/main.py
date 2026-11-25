@@ -37,7 +37,14 @@ def init_db():
     conn = sqlite3.connect("fortibank_vuln.db", check_same_thread=False)
     c = conn.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS cards (card_number TEXT, pin TEXT, balance REAL, name TEXT, brand TEXT)")
-    
+    # Migración: añadir columna default_balance si no existe (BDs previas)
+    try:
+        c.execute("ALTER TABLE cards ADD COLUMN default_balance REAL DEFAULT 0")
+    except sqlite3.OperationalError:
+        pass  # columna ya existe
+    # Para tarjetas existentes sin default, usar el saldo actual como default
+    c.execute("UPDATE cards SET default_balance = balance WHERE default_balance = 0 OR default_balance IS NULL")
+
     users = [
         ("4591061418966700", "1234", 100.00, "Ernesto López", "VISA"),
         ("5496139865798488", "1234", 300012.00, "Sebastian Russo", "MASTERCARD"),
@@ -48,10 +55,11 @@ def init_db():
         ("4914070832130801", "1234", 200000.00, "Roberto Rios", "VISA"),
         ("2630415126271802", "1234", 11000.00, "Tania Bear", "MASTERCARD"),
     ]
-    
+
     c.execute("SELECT COUNT(*) FROM cards")
     if c.fetchone()[0] == 0:
-        c.executemany("INSERT INTO cards VALUES (?, ?, ?, ?, ?)", users)
+        c.executemany("INSERT INTO cards (card_number, pin, balance, name, brand, default_balance) VALUES (?, ?, ?, ?, ?, ?)",
+                      [(u[0], u[1], u[2], u[3], u[4], u[2]) for u in users])
         conn.commit()
     return conn
 
@@ -227,6 +235,7 @@ class CardCreate(BaseModel):
     name: str
     brand: str = "VISA"
     balance: float = 0.0
+    default_balance: float = 0.0
 
 
 class CardUpdate(BaseModel):
@@ -234,15 +243,16 @@ class CardUpdate(BaseModel):
     name: str | None = None
     brand: str | None = None
     balance: float | None = None
+    default_balance: float | None = None
 
 
 def _cards_as_dicts():
     with db_lock:
         cur = db_conn.cursor()
-        cur.execute("SELECT card_number, pin, balance, name, brand FROM cards ORDER BY card_number")
+        cur.execute("SELECT card_number, pin, balance, name, brand, default_balance FROM cards ORDER BY card_number")
         rows = cur.fetchall()
     return [
-        {"card_number": r[0], "pin": r[1], "balance": r[2], "name": r[3], "brand": r[4]}
+        {"card_number": r[0], "pin": r[1], "balance": r[2], "name": r[3], "brand": r[4], "default_balance": r[5]}
         for r in rows
     ]
 
@@ -274,8 +284,8 @@ def create_card(card: CardCreate):
     with db_lock:
         cur = db_conn.cursor()
         cur.execute(
-            "INSERT INTO cards (card_number, pin, balance, name, brand) VALUES (?, ?, ?, ?, ?)",
-            (card.card_number, card.pin, card.balance, card.name, card.brand),
+            "INSERT INTO cards (card_number, pin, balance, name, brand, default_balance) VALUES (?, ?, ?, ?, ?, ?)",
+            (card.card_number, card.pin, card.balance, card.name, card.brand, card.default_balance),
         )
         db_conn.commit()
     return {"status": "ok"}
@@ -298,11 +308,29 @@ def update_card(card_number: str, card: CardUpdate):
         if card.balance is not None:
             fields.append("balance = ?")
             vals.append(card.balance)
+        if card.default_balance is not None:
+            fields.append("default_balance = ?")
+            vals.append(card.default_balance)
         if fields:
             vals.append(card_number)
             cur.execute("UPDATE cards SET " + ", ".join(fields) + " WHERE card_number = ?", vals)
             db_conn.commit()
     return {"status": "ok"}
+
+
+@app.post("/api/cards/{card_number}/reset")
+def reset_card_balance(card_number: str):
+    """Reset a card's balance to its default_balance value."""
+    with db_lock:
+        cur = db_conn.cursor()
+        cur.execute("SELECT default_balance FROM cards WHERE card_number = ?", (card_number,))
+        row = cur.fetchone()
+        if not row:
+            return {"status": "error", "detail": "Tarjeta no encontrada"}
+        cur.execute("UPDATE cards SET balance = ? WHERE card_number = ?", (row[0], card_number))
+        db_conn.commit()
+        new_balance = row[0]
+    return {"status": "ok", "balance": new_balance}
 
 
 @app.delete("/api/cards/{card_number}")

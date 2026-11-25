@@ -158,10 +158,11 @@ list, add, edit and delete cards. It is backed by a REST API (all under the same
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `GET` | `/api/cards` | List all cards (card_number, pin, balance, name, brand) |
+| `GET` | `/api/cards` | List all cards (card_number, pin, balance, name, brand, default_balance) |
 | `POST` | `/api/cards` | Add a card |
-| `PUT` | `/api/cards/{card_number}` | Edit a card (pin/name/brand/balance) |
+| `PUT` | `/api/cards/{card_number}` | Edit a card (pin/name/brand/balance/default_balance) |
 | `DELETE` | `/api/cards/{card_number}` | Delete a card |
+| `POST` | `/api/cards/{card_number}/reset` | Reset balance to default_balance |
 
 The ATM frontend polls `GET /api/cards` every 15 s and rebuilds its card
 carousel when the set of cards changes, so cards added/removed/edited here appear

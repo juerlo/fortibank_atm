@@ -5,6 +5,10 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- Backend: each card now has a `default_balance` field — the original/seed
+  balance. A new `POST /api/cards/{card_number}/reset` endpoint restores a
+  card's balance to its default. The card admin web app shows a "Default"
+  column and a "Reset" button per card.
 - Backend: the card admin web page now lists the connected frontend(s) —
   hostname + IP (`GET /api/clients`); the frontend sends its real IP and
   hostname via `X-Frontend-IP` / `X-Frontend-Host` headers so they show
