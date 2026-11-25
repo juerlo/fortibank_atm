@@ -167,6 +167,35 @@ The ATM frontend polls `GET /api/cards` every 15 s and rebuilds its card
 carousel when the set of cards changes, so cards added/removed/edited here appear
 at the kiosk automatically.
 
+### Frontend tracking
+
+The backend keeps an in-memory registry of connected frontends. Each time the
+ATM kiosk sends a request it includes two headers — `X-Frontend-IP` (its real
+IP, since traffic may be NAT'd through a gateway) and `X-Frontend-Host` (its
+hostname). The middleware records the pair so the admin web page and API can
+report which frontends are alive.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/clients` | List all connected frontends (`ip`, `host`, `last_seen`) |
+| `POST` | `/api/frontend-ip` | Look up the latest known IP for a given hostname |
+
+`POST /api/frontend-ip` request/response:
+
+```json
+// Request
+{ "host": "orangepizero3" }
+
+// Response (found)
+{ "ip": "192.168.198.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
+
+// Response (unknown host)
+{ "ip": null, "host": "unknown-host", "last_seen": "" }
+```
+
+The Admin menu on the ATM uses this endpoint to display the frontend's own IP
+and hostname (e.g. `IP Frontend: orangepizero3 (192.168.198.2)`).
+
 Example:
 
 ```bash

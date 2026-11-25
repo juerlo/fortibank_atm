@@ -81,3 +81,25 @@ so the ISO frames reach the frontend).
 > The extra fields (`debug_cmd`, `template_file`, `exchange_eval`,
 > `admin_sql_query`) are deliberate backdoors for the SASE SUMMIT exercise; the ATM
 > frontend does not send them.
+
+`GET /api/clients` — list connected frontends (IP, hostname, last seen):
+
+```json
+[
+  { "ip": "192.168.198.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
+]
+```
+
+`POST /api/frontend-ip` — look up the latest known IP for a hostname:
+
+```json
+// Request
+{ "host": "orangepizero3" }
+
+// Response
+{ "ip": "192.168.198.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
+```
+
+The frontend sends `X-Frontend-IP` and `X-Frontend-Host` headers on every
+request so the backend can track it even when NAT'd. The Admin menu uses
+`POST /api/frontend-ip` to show the frontend's own IP and hostname.
