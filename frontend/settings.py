@@ -15,6 +15,7 @@ DEFAULTS = {
     "admin_pin": "0000",
     "saver_timeout": "120",
     "screenoff_timeout": "0",
+    "muted": "0",
 }
 
 # key -> (Spanish, English)
@@ -72,6 +73,9 @@ TRANSLATIONS = {
     "admin_resetting": ("Reseteando saldos...", "Resetting balances..."),
     "admin_reset_ok": ("Saldos reseteados (%d tarjetas)", "Balances reset (%d cards)"),
     "admin_reset_fail": ("Error al resetear: %s", "Reset failed: %s"),
+    "admin_mute_btn": ("SILENCIO", "MUTE"),
+    "admin_muted": ("Sonido silenciado", "Sound muted"),
+    "admin_unmuted": ("Sonido activado", "Sound on"),
     "admin_poweroff": ("APAGAR", "POWER OFF"),
     "admin_reboot": ("REINICIAR", "REBOOT"),
     "admin_close": ("CERRAR", "CLOSE"),

@@ -450,7 +450,7 @@ class ScreenCardAnim(Screen):
         app = App.get_running_app()
         app.go_to('cardanim')
         self._start_flash()
-        Clock.schedule_once(lambda dt: app.snd_insert and app.snd_insert.play(), 0.3)
+        Clock.schedule_once(lambda dt: app.snd_insert and not app.muted and app.snd_insert.play(), 0.3)
 
         a = Animation(y=-150, duration=1.05, t='in_out_cubic')  # 0-30%
         h = Animation(y=-150, duration=1.05, t='linear')        # 30-60% (hold)
@@ -466,7 +466,7 @@ class ScreenCardAnim(Screen):
         app = App.get_running_app()
         app.go_to('cardanim')
         self._start_flash()
-        Clock.schedule_once(lambda dt: app.snd_insert and app.snd_insert.play(), 0.3)
+        Clock.schedule_once(lambda dt: app.snd_insert and not app.muted and app.snd_insert.play(), 0.3)
 
         a = Animation(y=-150, duration=1.2, t='in_out_cubic')   # 0-30%
         h = Animation(y=-150, duration=1.2, t='linear')         # 30-60%
@@ -783,6 +783,9 @@ class FortiBankApp(App):
         self.snd_insert = self._load_sound("atm_insertion.mp3")
         self.snd_count = self._load_sound("counting.mp3")
         self.snd_beep = self._load_sound("beep.wav")
+        self._saved_volume = ""
+        if self.muted:
+            Clock.schedule_once(lambda dt: self._set_hardware_mute(True), 1)
         self._admin_taps = 0
         self._last_admin_tap = 0.0
         self._clock_taps = 0
@@ -821,7 +824,7 @@ class FortiBankApp(App):
         self.clock_text = now.strftime("%I:%M %p")
 
     def _beep(self):
-        if self.snd_beep:
+        if self.snd_beep and not self.muted:
             now = Clock.get_boottime()
             if now - getattr(self, "_last_beep", 0) < 0.12:
                 return
@@ -1060,6 +1063,8 @@ class FortiBankApp(App):
             label = self.t("admin_frontend_ip")
             scr.ids.admin_frontend_ip.text = "{} ...".format(label)
             threading.Thread(target=self._do_lookup_frontend_ip, daemon=True).start()
+        if 'admin_mute_btn' in scr.ids:
+            scr.ids.admin_mute_btn.text = self.t("admin_unmuted") if self.muted else self.t("admin_mute_btn")
 
     def register_admin_tap(self):
         now = time.time()
@@ -1192,6 +1197,38 @@ class FortiBankApp(App):
     def reset_cards_balance(self):
         self._set_admin_status(self.t("admin_resetting"), None)
         threading.Thread(target=self._do_reset_cards, daemon=True).start()
+
+    @property
+    def muted(self):
+        return self.settings.get("muted", "0") == "1"
+
+    def toggle_mute(self):
+        new_val = not self.muted
+        self.settings.set("muted", "1" if new_val else "0", persist=True)
+        self._set_hardware_mute(new_val)
+        self._set_admin_status(
+            self.t("admin_muted") if new_val else self.t("admin_unmuted"), True)
+        # Update button label to reflect current state
+        scr = self.root.get_screen('adminmenu')
+        if 'admin_mute_btn' in scr.ids:
+            scr.ids.admin_mute_btn.text = self.t("admin_unmuted") if new_val else self.t("admin_mute_btn")
+
+    def _set_hardware_mute(self, mute):
+        # Mute/unmute the hardware DAC so no sound escapes at the system level.
+        try:
+            if mute:
+                # Save current volume (parse "Mono: 63 [100%]" -> "63")
+                r = subprocess.run(["amixer", "-c", "0", "sget", "digital volume"],
+                                   capture_output=True, text=True, timeout=3)
+                for line in r.stdout.splitlines():
+                    if "Mono:" in line:
+                        self._saved_volume = line.split("Mono:")[1].strip().split()[0]
+                        break
+            vol = "0" if mute else (self._saved_volume or "63")
+            subprocess.run(["amixer", "-c", "0", "sset", "digital volume", vol],
+                           capture_output=True, timeout=3)
+        except Exception:
+            pass
 
     def _do_reset_cards(self):
         try:

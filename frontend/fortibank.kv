@@ -688,8 +688,8 @@
                 valign: 'middle'
                 text_size: self.size
             GridLayout:
-                cols: 2
-                spacing: 12
+                cols: 3
+                spacing: 10
                 size_hint_y: None
                 height: 225
                 AtmButton:
@@ -700,6 +700,10 @@
                     id: admin_saver_btn
                     text: "SALVAPANTALLAS"
                     on_release: app.open_saver_cfg()
+                AtmButton:
+                    id: admin_mute_btn
+                    text: "SILENCIO"
+                    on_release: app.toggle_mute()
                 CancelButton:
                     id: admin_poweroff
                     text: "APAGAR"
@@ -708,14 +712,14 @@
                     id: admin_reboot
                     text: "REINICIAR"
                     on_release: app.do_reboot()
-                CancelButton:
-                    id: admin_close
-                    text: "CERRAR"
-                    on_release: app.close_admin()
                 AtmButton:
                     id: admin_reset_balance
                     text: "RESET SALDOS"
                     on_release: app.reset_cards_balance()
+                CancelButton:
+                    id: admin_close
+                    text: "CERRAR"
+                    on_release: app.close_admin()
             Widget:
                 size_hint_y: 1
 

@@ -18,6 +18,9 @@ All notable changes to this project are documented here.
   backend via `POST /api/frontend-ip` each time the menu is opened.
 - Frontend: Admin menu has a "RESET SALDOS" button that resets all card
   balances to their default values via `POST /api/cards/{card_number}/reset`.
+- Frontend: Admin menu has a "SILENCIO" (Mute) button that mutes all sound —
+  both app-level (skips every `.play()` call) and hardware-level (`amixer`
+  sets the DAC volume to 0). The setting persists across reboots.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend
