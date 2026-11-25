@@ -1275,8 +1275,29 @@ class FortiBankApp(App):
         """Scale a fixed font size (in sp) to the current window width."""
         return str(int(px * self.scale)) + 'sp'
 
+    def _supported_presets(self):
+        # Query xrandr for modes the connected display actually supports and
+        # return only the presets that are available. Falls back to the full
+        # preset list if xrandr fails (e.g. not running under X).
+        try:
+            r = subprocess.run(["xrandr"], capture_output=True, text=True, timeout=3)
+            available = set()
+            for token in r.stdout.replace(",", " ").split():
+                if "x" in token and token.replace("x", "").isdigit():
+                    available.add(token)
+            supported = [(w, h) for w, h in self._RESOLUTION_PRESETS
+                         if "{}x{}".format(w, h) in available]
+            return supported or self._RESOLUTION_PRESETS
+        except Exception:
+            return self._RESOLUTION_PRESETS
+
     def cycle_resolution(self):
-        presets = self._RESOLUTION_PRESETS
+        presets = self._supported_presets()
+        if len(presets) <= 1:
+            self._set_admin_status(
+                self.t("resolution_lbl") + " " +
+                "{}x{}".format(*presets[0]) if presets else "—", None)
+            return
         cur = self.settings.get("resolution", "1024x600")
         idx = 0
         for i, (w, h) in enumerate(presets):
