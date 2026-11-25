@@ -9,6 +9,9 @@ All notable changes to this project are documented here.
   hostname + IP (`GET /api/clients`); the frontend sends its real IP and
   hostname via `X-Frontend-IP` / `X-Frontend-Host` headers so they show
   correctly even when the traffic is NAT'd.
+- Frontend: the Admin menu now shows this frontend's own IP and hostname
+  (e.g. `IP Frontend: orangepizero3 (192.168.198.2)`), refreshed each time
+  the menu is opened.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend

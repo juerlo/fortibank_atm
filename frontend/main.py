@@ -1056,6 +1056,13 @@ class FortiBankApp(App):
             scr.ids.admin_tz_btn.text = prefix + tz_label
         if 'backend_ip_value' in scr.ids:
             scr.ids.backend_ip_value.text = self.settings.backend_ip
+        if 'admin_frontend_ip' in scr.ids:
+            ip, host = self._frontend_ip()
+            label = self.t("admin_frontend_ip")
+            if ip:
+                scr.ids.admin_frontend_ip.text = "{} {} ({})".format(label, host or "?", ip)
+            else:
+                scr.ids.admin_frontend_ip.text = "{} —".format(label)
 
     def register_admin_tap(self):
         now = time.time()
@@ -1196,9 +1203,9 @@ class FortiBankApp(App):
             base = "http://{0}:8000".format(self.settings.backend_ip)
         return base + path
 
-    def _client_headers(self):
-        # Send our own IP so the backend can show the real frontend IP even
-        # when the request is NAT'd through a gateway.
+    def _frontend_ip(self):
+        # Return (ip, hostname) of this frontend as seen on the backend-facing
+        # interface. Returns ("", "") if the IP cannot be determined.
         ip = ""
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1209,8 +1216,14 @@ class FortiBankApp(App):
                 s.close()
         except Exception:
             ip = ""
+        return ip, (socket.gethostname() if ip else "")
+
+    def _client_headers(self):
+        # Send our own IP/hostname so the backend can show the real frontend
+        # even when the request is NAT'd through a gateway.
+        ip, host = self._frontend_ip()
         if ip:
-            return {"X-Frontend-IP": ip, "X-Frontend-Host": socket.gethostname()}
+            return {"X-Frontend-IP": ip, "X-Frontend-Host": host}
         return {}
 
     def _health_url(self):

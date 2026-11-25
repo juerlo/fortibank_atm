@@ -65,6 +65,7 @@ TRANSLATIONS = {
     # Admin menu
     "admin_menu_title": ("Menú de Administración", "Administration Menu"),
     "admin_backend_lbl": ("Backend IP:", "Backend IP:"),
+    "admin_frontend_ip": ("IP Frontend:", "Frontend IP:"),
     "admin_save_btn": ("GUARDAR", "SAVE"),
     "admin_change_pin": ("CAMBIAR NIP", "CHANGE PIN"),
     "admin_poweroff": ("APAGAR", "POWER OFF"),
