@@ -16,6 +16,8 @@ All notable changes to this project are documented here.
 - Frontend: the Admin menu now shows this frontend's own IP and hostname
   (e.g. `IP Frontend: orangepizero3 (192.168.198.2)`), looked up from the
   backend via `POST /api/frontend-ip` each time the menu is opened.
+- Frontend: Admin menu has a "RESET SALDOS" button that resets all card
+  balances to their default values via `POST /api/cards/{card_number}/reset`.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend

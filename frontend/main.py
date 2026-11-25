@@ -1189,6 +1189,29 @@ class FortiBankApp(App):
                 col = (0.95, 0.61, 0.07, 1)
             scr.ids.admin_status.color = col
 
+    def reset_cards_balance(self):
+        self._set_admin_status(self.t("admin_resetting"), None)
+        threading.Thread(target=self._do_reset_cards, daemon=True).start()
+
+    def _do_reset_cards(self):
+        try:
+            base = self._api_url("/api/cards")
+            r = requests.get(base, timeout=4)
+            cards = r.json() if r.ok else []
+            if not isinstance(cards, list):
+                cards = []
+            count = 0
+            for c in cards:
+                cn = c.get("card_number")
+                if not cn:
+                    continue
+                rr = requests.post(self._api_url("/api/cards/{0}/reset".format(cn)), timeout=4)
+                if rr.ok:
+                    count += 1
+            self._set_admin_status(self.t("admin_reset_ok") % count, True)
+        except Exception as e:
+            self._set_admin_status(self.t("admin_reset_fail") % type(e).__name__, False)
+
     # ------------------------------------------------------------------
     # Backend keep-alive (drives the "Out of Service" banner)
     # ------------------------------------------------------------------

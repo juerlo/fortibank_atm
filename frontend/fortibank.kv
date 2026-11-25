@@ -712,6 +712,10 @@
                     id: admin_close
                     text: "CERRAR"
                     on_release: app.close_admin()
+                AtmButton:
+                    id: admin_reset_balance
+                    text: "RESET SALDOS"
+                    on_release: app.reset_cards_balance()
             Widget:
                 size_hint_y: 1
 
