@@ -21,8 +21,12 @@ async def track_client(request: Request, call_next):
     # (Browsers and other clients don't, so they are not listed.)
     client_ip = request.headers.get("X-Frontend-IP")
     if client_ip:
+        client_host = request.headers.get("X-Frontend-Host") or ""
         with client_lock:
-            CLIENT_IPS[client_ip] = datetime.datetime.now().isoformat(timespec="seconds")
+            CLIENT_IPS[client_ip] = {
+                "host": client_host,
+                "last_seen": datetime.datetime.now().isoformat(timespec="seconds"),
+            }
     return await call_next(request)
 
 # -------------------------------------------------------------------
@@ -248,7 +252,7 @@ def list_cards():
 @app.get("/api/clients")
 def list_clients():
     with client_lock:
-        items = [{"ip": ip, "last_seen": ts} for ip, ts in CLIENT_IPS.items()]
+        items = [{"ip": ip, "host": info.get("host", ""), "last_seen": info.get("last_seen", "")} for ip, info in CLIENT_IPS.items()]
     return items
 
 

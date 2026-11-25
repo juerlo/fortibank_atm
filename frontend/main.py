@@ -1209,7 +1209,9 @@ class FortiBankApp(App):
                 s.close()
         except Exception:
             ip = ""
-        return {"X-Frontend-IP": ip} if ip else {}
+        if ip:
+            return {"X-Frontend-IP": ip, "X-Frontend-Host": socket.gethostname()}
+        return {}
 
     def _health_url(self):
         """Lightweight URL used to check whether the backend is reachable."""

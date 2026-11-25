@@ -5,9 +5,10 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
-- Backend: the card admin web page now lists the connected frontend IP(s)
-  (`GET /api/clients`); the frontend sends its real IP via an `X-Frontend-IP`
-  header so it shows correctly even when the traffic is NAT'd.
+- Backend: the card admin web page now lists the connected frontend(s) —
+  hostname + IP (`GET /api/clients`); the frontend sends its real IP and
+  hostname via `X-Frontend-IP` / `X-Frontend-Host` headers so they show
+  correctly even when the traffic is NAT'd.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend

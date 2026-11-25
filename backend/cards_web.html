@@ -204,7 +204,7 @@ async function loadClients() {
     }
     data.forEach(c => {
       const li = document.createElement('li');
-      li.innerHTML = '<span class="ip">' + c.ip + '</span><span class="seen">' + (c.last_seen || '') + '</span>';
+      li.innerHTML = '<span class="ip">' + (c.host ? c.host + ' (' + c.ip + ')' : c.ip) + '</span><span class="seen">' + (c.last_seen || '') + '</span>';
       ul.appendChild(li);
     });
   } catch (e) {
