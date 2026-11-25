@@ -34,6 +34,11 @@
   .msg{font-size:13px;margin-top:10px;min-height:18px}
   .msg.ok{color:var(--ok)}.msg.err{color:var(--err)}
   .actions{display:flex;gap:8px}
+  .clients{list-style:none;margin:0;padding:0;font-size:14px}
+  .clients li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .clients li:last-child{border-bottom:0}
+  .clients .ip{font-family:ui-monospace,Menlo,Consolas,monospace;color:#8ea2ff}
+  .clients .seen{color:var(--muted);font-size:12px}
   @media(max-width:820px){form{grid-template-columns:1fr 1fr}.actions{flex-wrap:wrap}}
 </style>
 </head>
@@ -64,6 +69,12 @@
       <tbody id="rows"></tbody>
     </table>
     <div class="msg" id="msg2"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Frontends conectados</h2>
+    <ul id="clients" class="clients"></ul>
+    <div class="msg" id="msg3"></div>
   </section>
 </main>
 <script>
@@ -177,8 +188,34 @@ $('#rows').addEventListener('click', async e => {
   }
 });
 
+async function loadClients() {
+  try {
+    const r = await fetch('/api/clients');
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    let data = await r.json();
+    if (!Array.isArray(data)) data = [];
+    const ul = $('#clients');
+    ul.innerHTML = '';
+    data.sort((a, b) => (b.last_seen || '').localeCompare(a.last_seen || ''));
+    if (!data.length) {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="seen">Ningún frontend conectado</span>';
+      ul.appendChild(li);
+    }
+    data.forEach(c => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="ip">' + c.ip + '</span><span class="seen">' + (c.last_seen || '') + '</span>';
+      ul.appendChild(li);
+    });
+  } catch (e) {
+    setMsg($('#msg3'), 'No se pudo cargar: ' + e.message, false);
+  }
+}
+
 load();
 setInterval(load, 10000);
+loadClients();
+setInterval(loadClients, 5000);
 </script>
 </body>
 </html>

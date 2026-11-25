@@ -1,4 +1,5 @@
 import os
+import socket
 import math
 import random
 import threading
@@ -1195,13 +1196,28 @@ class FortiBankApp(App):
             base = "http://{0}:8000".format(self.settings.backend_ip)
         return base + path
 
+    def _client_headers(self):
+        # Send our own IP so the backend can show the real frontend IP even
+        # when the request is NAT'd through a gateway.
+        ip = ""
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            try:
+                s.connect((self.settings.backend_ip, 8000))
+                ip = s.getsockname()[0]
+            finally:
+                s.close()
+        except Exception:
+            ip = ""
+        return {"X-Frontend-IP": ip} if ip else {}
+
     def _health_url(self):
         """Lightweight URL used to check whether the backend is reachable."""
         return self._api_url("/docs")
 
     def _backend_reachable(self):
         try:
-            r = requests.get(self._health_url(), timeout=4)
+            r = requests.get(self._health_url(), timeout=4, headers=self._client_headers())
             return r.status_code < 500
         except Exception:
             return False
@@ -1249,7 +1265,7 @@ class FortiBankApp(App):
 
     def _refresh_cards(self):
         try:
-            r = requests.get(self._api_url("/api/cards"), timeout=5)
+            r = requests.get(self._api_url("/api/cards"), timeout=5, headers=self._client_headers())
             if r.status_code != 200:
                 return
             data = r.json()

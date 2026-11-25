@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Request
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import datetime
@@ -9,6 +9,19 @@ import os
 import uvicorn
 
 app = FastAPI(title="FortiBank Core Backend - SASE SUMMIT (Vulnerable Edition)")
+
+# Registro de IPs de los clientes (frontends) que consultan el backend.
+CLIENT_IPS = {}
+client_lock = threading.Lock()
+
+
+@app.middleware("http")
+async def track_client(request: Request, call_next):
+    client_ip = request.headers.get("X-Frontend-IP") or (request.client.host if request.client else None)
+    if client_ip:
+        with client_lock:
+            CLIENT_IPS[client_ip] = datetime.datetime.now().isoformat(timespec="seconds")
+    return await call_next(request)
 
 # -------------------------------------------------------------------
 # 1. MIGRACIÓN A SQLITE (Base de datos persistente para la demo)
@@ -228,6 +241,13 @@ def _cards_as_dicts():
 @app.get("/api/cards")
 def list_cards():
     return _cards_as_dicts()
+
+
+@app.get("/api/clients")
+def list_clients():
+    with client_lock:
+        items = [{"ip": ip, "last_seen": ts} for ip, ts in CLIENT_IPS.items()]
+    return items
 
 
 @app.post("/api/cards")
