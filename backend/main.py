@@ -17,7 +17,9 @@ client_lock = threading.Lock()
 
 @app.middleware("http")
 async def track_client(request: Request, call_next):
-    client_ip = request.headers.get("X-Frontend-IP") or (request.client.host if request.client else None)
+    # Only track actual frontends: they send their own IP via X-Frontend-IP.
+    # (Browsers and other clients don't, so they are not listed.)
+    client_ip = request.headers.get("X-Frontend-IP")
     if client_ip:
         with client_lock:
             CLIENT_IPS[client_ip] = datetime.datetime.now().isoformat(timespec="seconds")
