@@ -16,6 +16,7 @@ DEFAULTS = {
     "saver_timeout": "120",
     "screenoff_timeout": "0",
     "muted": "0",
+    "resolution": "1024x600",
 }
 
 # key -> (Spanish, English)
@@ -76,6 +77,8 @@ TRANSLATIONS = {
     "admin_mute_btn": ("SILENCIO", "MUTE"),
     "admin_muted": ("Sonido silenciado", "Sound muted"),
     "admin_unmuted": ("Sonido activado", "Sound on"),
+    "resolution_lbl": ("Resolución:", "Resolution:"),
+    "resolution_restart": ("Reiniciar para aplicar", "Restart to apply"),
     "admin_poweroff": ("APAGAR", "POWER OFF"),
     "admin_reboot": ("REINICIAR", "REBOOT"),
     "admin_close": ("CERRAR", "CLOSE"),

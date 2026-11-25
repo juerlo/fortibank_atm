@@ -1,6 +1,7 @@
 #!/bin/bash
 # Launcher for the FortiBank ATM frontend (installed on the Orange Pi at the
-# repo root). Waits for Xorg, pins HDMI to 1024x600, then runs the app.
+# repo root). Waits for Xorg, pins HDMI to the configured resolution, then
+# runs the app.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Wait for Xorg :2 to be ready (X socket present)
@@ -9,9 +10,13 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-# Pin HDMI output to the panel native 1024x600 (fixes black borders / cropped UI)
+# Pin HDMI output to the configured resolution (default 1024x600).
+# The resolution is stored in frontend/settings.txt and changed from the
+# hidden Admin menu; a reboot is required to apply.
 export DISPLAY=:2
-xrandr --output HDMI-1 --mode 1024x600 2>/dev/null || true
+RESOLUTION=$(grep '^resolution=' "$SCRIPT_DIR/frontend/settings.txt" 2>/dev/null | cut -d= -f2)
+RESOLUTION="${RESOLUTION:-1024x600}"
+xrandr --output HDMI-1 --mode "$RESOLUTION" 2>/dev/null || true
 
 # Run the ATM app using the frontend's own virtualenv
 cd "$SCRIPT_DIR/frontend"

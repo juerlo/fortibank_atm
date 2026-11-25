@@ -3,7 +3,7 @@
 <HeaderBar@BoxLayout>:
     orientation: 'horizontal'
     size_hint_y: None
-    height: 64
+    height: app.s(64)
     padding: [30, 15]
     canvas.before:
         Color:
@@ -28,7 +28,7 @@
     Button:
         id: clock_lbl
         text: app.clock_text
-        font_size: '24sp'
+        font_size: app.sfont(24)
         bold: True
         color: 1, 1, 1, 1
         halign: 'right'
@@ -51,13 +51,13 @@
 <AtmButton@BorderButton>:
     background_color: 0.12, 0.35, 0.58, 1
     color: 1, 1, 1, 1
-    font_size: '22sp'
+    font_size: app.sfont(22)
     bold: True
 
 <CancelButton@BorderButton>:
     background_color: 0.91, 0.30, 0.24, 1
     color: 1, 1, 1, 1
-    font_size: '20sp'
+    font_size: app.sfont(20)
     bold: True
 
 <NumKey@PushButton>:
@@ -617,10 +617,10 @@
             Label:
                 id: admin_menu_title
                 text: "Menú de Administración"
-                font_size: '28sp'
+                font_size: app.sfont(28)
                 bold: True
                 size_hint_y: None
-                height: 45
+                height: app.s(45)
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -645,10 +645,10 @@
                 Label:
                     id: admin_backend_lbl
                     text: "Backend IP:"
-                    font_size: '20sp'
+                    font_size: app.sfont(20)
                     bold: True
                     size_hint_x: None
-                    width: 140
+                    width: app.s(140)
                     halign: 'left'
                     valign: 'middle'
                     text_size: self.size
@@ -658,7 +658,7 @@
                     background_normal: ''
                     background_color: 0.925, 0.941, 0.945, 1
                     color: 0.2, 0.2, 0.2, 1
-                    font_size: '22sp'
+                    font_size: app.sfont(22)
                     bold: True
                     on_release: app.open_admin_ip()
                 AtmButton:
@@ -670,20 +670,20 @@
             Label:
                 id: admin_frontend_ip
                 text: "IP Frontend: —"
-                font_size: '18sp'
+                font_size: app.sfont(18)
                 color: 0.64, 0.70, 0.78, 1
                 size_hint_y: None
-                height: 26
+                height: app.s(26)
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             Label:
                 id: admin_status
                 text: ""
-                font_size: '16sp'
+                font_size: app.sfont(16)
                 color: 0.95, 0.61, 0.07, 1
                 size_hint_y: None
-                height: 28
+                height: app.s(28)
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -691,7 +691,7 @@
                 cols: 3
                 spacing: 10
                 size_hint_y: None
-                height: 225
+                height: app.s(225)
                 AtmButton:
                     id: admin_change_pin
                     text: "CAMBIAR NIP"
@@ -720,6 +720,10 @@
                     id: admin_close
                     text: "CERRAR"
                     on_release: app.close_admin()
+                AtmButton:
+                    id: admin_resolution_btn
+                    text: "RESOLUCIÓN"
+                    on_release: app.cycle_resolution()
             Widget:
                 size_hint_y: 1
 

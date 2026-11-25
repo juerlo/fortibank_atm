@@ -21,6 +21,10 @@ All notable changes to this project are documented here.
 - Frontend: Admin menu has a "SILENCIO" (Mute) button that mutes all sound —
   both app-level (skips every `.play()` call) and hardware-level (`amixer`
   sets the DAC volume to 0). The setting persists across reboots.
+- Frontend: Admin menu has a "RESOLUCIÓN" button that cycles between
+  resolution presets (1024×600, 1920×1080). The choice is saved to
+  `settings.txt` and applied on next reboot (`start_atm.sh` sets HDMI mode,
+  Kivy scales the UI proportionally via a `scale_factor`).
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend

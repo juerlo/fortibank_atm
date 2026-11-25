@@ -19,8 +19,31 @@ logging.getLogger("requests").setLevel(logging.WARNING)
 logging.getLogger("urllib3.connectionpool").setLevel(logging.WARNING)
 
 from kivy.config import Config
-Config.set('graphics', 'width', '1024')
-Config.set('graphics', 'height', '600')
+
+# Resolution is read directly from settings.txt (before the Settings class and
+# Kivy App are imported) because Config.set must run before the window is
+# created. The value is a preset like "1024x600" or "1920x1080".
+def _load_resolution():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings.txt")
+    value = "1024x600"
+    try:
+        with open(path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line.startswith("resolution="):
+                    value = line.split("=", 1)[1].strip()
+                    break
+    except Exception:
+        pass
+    try:
+        w, h = value.lower().split("x")
+        return int(w), int(h)
+    except Exception:
+        return 1024, 600
+
+_RES_W, _RES_H = _load_resolution()
+Config.set('graphics', 'width', str(_RES_W))
+Config.set('graphics', 'height', str(_RES_H))
 Config.set('graphics', 'resizable', '0')
 Config.set('graphics', 'maxfps', '60')
 
@@ -28,7 +51,7 @@ from kivy.app import App
 from kivy.clock import Clock, mainthread
 from kivy.animation import Animation
 from kivy.core.audio import SoundLoader
-from kivy.properties import StringProperty, BooleanProperty
+from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from kivy.factory import Factory
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
@@ -1065,6 +1088,9 @@ class FortiBankApp(App):
             threading.Thread(target=self._do_lookup_frontend_ip, daemon=True).start()
         if 'admin_mute_btn' in scr.ids:
             scr.ids.admin_mute_btn.text = self.t("admin_unmuted") if self.muted else self.t("admin_mute_btn")
+        if 'admin_resolution_btn' in scr.ids:
+            cur = self.settings.get("resolution", "1024x600")
+            scr.ids.admin_resolution_btn.text = "{} {}".format(self.t("resolution_lbl"), cur.replace("x", "×"))
 
     def register_admin_tap(self):
         now = time.time()
@@ -1229,6 +1255,42 @@ class FortiBankApp(App):
                            capture_output=True, timeout=3)
         except Exception:
             pass
+
+    # ------------------------------------------------------------------
+    # Resolution scaling (Option A: fixed 1024x600 design, scaled to the
+    # actual window size). All fixed pixel sizes in the KV file are wrapped
+    # with app.s(N) and all font sizes with app.sfont(N).
+    # ------------------------------------------------------------------
+    _RESOLUTION_PRESETS = [(1024, 600), (1920, 1080)]
+
+    @property
+    def scale(self):
+        return Window.width / 1024.0
+
+    def s(self, px):
+        """Scale a fixed pixel size to the current window width."""
+        return int(px * self.scale)
+
+    def sfont(self, px):
+        """Scale a fixed font size (in sp) to the current window width."""
+        return str(int(px * self.scale)) + 'sp'
+
+    def cycle_resolution(self):
+        presets = self._RESOLUTION_PRESETS
+        cur = self.settings.get("resolution", "1024x600")
+        idx = 0
+        for i, (w, h) in enumerate(presets):
+            if cur == "{}x{}".format(w, h):
+                idx = i
+                break
+        w, h = presets[(idx + 1) % len(presets)]
+        self.settings.set("resolution", "{}x{}".format(w, h), persist=True)
+        label = self.t("resolution_lbl")
+        self._set_admin_status(
+            "{} {}×{} — {}".format(label, w, h, self.t("resolution_restart")), None)
+        scr = self.root.get_screen('adminmenu')
+        if 'admin_resolution_btn' in scr.ids:
+            scr.ids.admin_resolution_btn.text = "{} {}×{}".format(label, w, h)
 
     def _do_reset_cards(self):
         try:
