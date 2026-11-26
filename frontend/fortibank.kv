@@ -766,28 +766,28 @@
                 height: app.scale * 280
                 AtmButton:
                     text: app.t("frame_left_m")
-                    on_release: app.frame_nudge("left", -10)
-                AtmButton:
-                    text: app.t("frame_left_p")
                     on_release: app.frame_nudge("left", 10)
                 AtmButton:
-                    text: app.t("frame_right_m")
-                    on_release: app.frame_nudge("right", -10)
+                    text: app.t("frame_left_p")
+                    on_release: app.frame_nudge("left", -10)
                 AtmButton:
-                    text: app.t("frame_right_p")
+                    text: app.t("frame_right_m")
                     on_release: app.frame_nudge("right", 10)
                 AtmButton:
-                    text: app.t("frame_top_m")
-                    on_release: app.frame_nudge("top", -10)
+                    text: app.t("frame_right_p")
+                    on_release: app.frame_nudge("right", -10)
                 AtmButton:
-                    text: app.t("frame_top_p")
+                    text: app.t("frame_top_m")
                     on_release: app.frame_nudge("top", 10)
                 AtmButton:
+                    text: app.t("frame_top_p")
+                    on_release: app.frame_nudge("top", -10)
+                AtmButton:
                     text: app.t("frame_bottom_m")
-                    on_release: app.frame_nudge("bottom", -10)
+                    on_release: app.frame_nudge("bottom", 10)
                 AtmButton:
                     text: app.t("frame_bottom_p")
-                    on_release: app.frame_nudge("bottom", 10)
+                    on_release: app.frame_nudge("bottom", -10)
             BoxLayout:
                 orientation: 'horizontal'
                 spacing: 12
