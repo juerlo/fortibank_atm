@@ -194,8 +194,9 @@ report which frontends are alive.
 { "ip": null, "host": "unknown-host", "last_seen": "" }
 ```
 
-The Admin menu on the ATM uses this endpoint to display the frontend's own IP
-and hostname (e.g. `IP Frontend: orangepizero3 (192.168.198.2)`).
+The Admin menu on the ATM reads the frontend's own IP and hostname directly
+from the OS network interface (`ip -4 -o addr show`), e.g.
+`IP Frontend: orangepizero3 (100.65.4.2)`.
 
 Example:
 

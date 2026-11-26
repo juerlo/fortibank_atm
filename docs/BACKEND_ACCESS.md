@@ -101,8 +101,9 @@ so the ISO frames reach the frontend).
 ```
 
 The frontend sends `X-Frontend-IP` and `X-Frontend-Host` headers on every
-request so the backend can track it even when NAT'd. The Admin menu uses
-`POST /api/frontend-ip` to show the frontend's own IP and hostname.
+request so the backend can track it even when NAT'd. The Admin menu reads the
+frontend's own IP and hostname directly from the OS network interface
+(`ip -4 -o addr show`), no backend round-trip needed.
 
 `POST /api/cards/{card_number}/reset` — reset a card's balance to its
 `default_balance` value:

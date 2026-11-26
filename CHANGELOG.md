@@ -14,17 +14,21 @@ All notable changes to this project are documented here.
   hostname via `X-Frontend-IP` / `X-Frontend-Host` headers so they show
   correctly even when the traffic is NAT'd.
 - Frontend: the Admin menu now shows this frontend's own IP and hostname
-  (e.g. `IP Frontend: orangepizero3 (192.168.198.2)`), looked up from the
-  backend via `POST /api/frontend-ip` each time the menu is opened.
+  (e.g. `IP Frontend: orangepizero3 (100.65.4.2)`), read directly from the
+  OS network interface (`ip -4 -o addr show`) each time the menu is opened.
 - Frontend: Admin menu has a "RESET SALDOS" button that resets all card
   balances to their default values via `POST /api/cards/{card_number}/reset`.
 - Frontend: Admin menu has a "SILENCIO" (Mute) button that mutes all sound —
-  both app-level (skips every `.play()` call) and hardware-level (`amixer`
-  sets the DAC volume to 0). The setting persists across reboots.
+  both app-level (skips every `.play()` call, including the bill-counting
+  sound) and hardware-level (`amixer` sets the DAC volume to 0). The setting
+  persists across reboots.
 - Frontend: Admin menu has a "RESOLUCIÓN" button that cycles between
   resolution presets (1024×600, 1920×1080). The choice is saved to
   `settings.txt` and applied on next reboot (`start_atm.sh` sets HDMI mode,
-  Kivy scales the UI proportionally via a `scale_factor`).
+  Kivy scales the UI proportionally via a `scale_factor`). Only resolutions
+  the connected display actually supports are offered (verified via `xrandr`);
+  if the saved resolution is unsupported, `start_atm.sh` safely falls back to
+  1024×600 so the screen never gets stuck blank.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend
