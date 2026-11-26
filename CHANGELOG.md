@@ -32,10 +32,11 @@ All notable changes to this project are documented here.
 - Frontend: Admin menu has a "MARCO" (Frame) button that opens a frame-adjustment
   screen. The physical frame/bezel covers the screen edges; the safe-area margins
   (`safe_left/top/right/bottom` in `settings.txt`) define the visible region. A
-  full-window `RootLayout` wraps the Manager, which is sized/positioned to the
-  safe area so the whole UI (top bar, text, carousel cards) fits the visible
-  region and scales proportionally (reactive `scale` factor). Margins persist
-  across reboots, are re-applied on every start, and update live when nudged.
+  canvas transform (translate + scale) maps the 1024×600 design into the safe
+  rectangle, so the whole UI (top bar, text, line, buttons, carousel cards) fits
+  the visible region and scales proportionally — including live when nudged.
+  Touch coordinates are mapped back into design space so taps stay accurate.
+  Margins persist across reboots and are re-applied on every start.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend

@@ -61,7 +61,7 @@ from kivy.uix.label import Label
 from kivy.uix.widget import Widget
 from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.floatlayout import FloatLayout
-from kivy.graphics import Color, RoundedRectangle, Rectangle, Line, PushMatrix, PopMatrix, Rotate
+from kivy.graphics import Color, RoundedRectangle, Rectangle, Line, PushMatrix, PopMatrix, Rotate, Translate, Scale
 from kivy.graphics.texture import Texture
 from kivy.core.window import Window
 
@@ -700,6 +700,16 @@ class Manager(ScreenManager):
     def on_touch_down(self, touch):
         app = App.get_running_app()
         if app is not None:
+            # Map the window touch into the scaled design space (the canvas
+            # transform may scale/translate the whole UI into the safe area).
+            try:
+                nx = (touch.x - app._tx) / app._sx
+                ny = (touch.y - app._ty) / app._sy
+                touch.x = nx
+                touch.y = ny
+                touch.pos = (nx, ny)
+            except Exception:
+                pass
             # Any activity resets the idle timer and wakes the display
             app._last_activity = time.time()
             if app._screen_off:
@@ -847,14 +857,15 @@ class FortiBankApp(App):
         self.oos_overlay = OOSOverlay()
         self.oos_label = self.oos_overlay.label
         self.oos_overlay.opacity = 0
+        # Safe-area transform state (window -> design space mapping).
+        self._tx = self._ty = 0
+        self._sx = self._sy = 1.0
         self.manager = Manager()
-        # The root is a full-window wrapper; the Manager inside is sized and
-        # positioned to the safe area (frame margins) so the UI fits the
-        # visible region. Re-applied on start and on window resize.
-        root = RootLayout(self.manager)
+        # Apply the safe-area (frame margins) once the window is up, and
+        # re-apply on resize so the UI stays inside the visible region.
         Clock.schedule_once(lambda dt: self._apply_safe_area(), 0)
         Window.bind(size=lambda *a: self._apply_safe_area())
-        return root
+        return self.manager
 
     def _load_sound(self, filename):
         path = os.path.join(FRONTEND_DIR, filename)
@@ -1314,16 +1325,24 @@ class FortiBankApp(App):
 
     def _apply_safe_area(self):
         m = getattr(self, "manager", None)
+        if m is None:
+            return
         l, t, r, b = self._safe_margins()
         safe_w = max(1, Window.width - l - r)
         safe_h = max(1, Window.height - t - b)
-        # Update the reactive scale factor (drives KV bindings) and resize
-        # the Manager to the visible region.
-        self.scale = safe_w / 1024.0
-        if m is not None:
-            m.size_hint = (None, None)
-            m.size = (safe_w, safe_h)
-            m.pos = (l, b)
+        # Map the 1024x600 design space into the safe rectangle via a canvas
+        # transform (translate + scale). The Manager stays full-window.
+        self._tx, self._ty = l, b
+        self._sx = safe_w / 1024.0
+        self._sy = safe_h / 600.0
+        m.canvas.before.clear()
+        with m.canvas.before:
+            PushMatrix()
+            Translate(l, b)
+            Scale(self._sx, self._sy)
+        m.canvas.after.clear()
+        with m.canvas.after:
+            PopMatrix()
         # Rebuild the card carousel so it scales with the new factor.
         self._rebuild_cards()
 

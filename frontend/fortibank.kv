@@ -17,7 +17,7 @@
             pos: self.x, self.y
             size: self.width, 3
     Button:
-        text: "[b][color=f39c12][size=28]FortiBank ATM[/size][/color][/b]"
+        text: "[b][color=f39c12][size=%d]FortiBank ATM[/size][/color][/b]" % int(app.scale * 28)
         markup: True
         halign: 'left'
         valign: 'middle'
