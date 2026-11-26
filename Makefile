@@ -16,7 +16,7 @@
 
 # ---- Deploy targets (override on the command line) ----
 # Frontend (Orange Pi kiosk) - see docs/DEPLOYMENT.md
-ATM_HOST      ?= orangepi@192.168.198.2
+ATM_HOST      ?= orangepi@100.65.4.2
 ATM_DIR       ?= /home/orangepi/fortibank_atm
 # Backend (host-based install only; the Docker container on 192.168.241.11 is
 # updated with the manual procedure in docs/DEPLOYMENT.md)

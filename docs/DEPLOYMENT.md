@@ -5,7 +5,7 @@ live lab machines used by the demo:
 
 | Role | Host | SSH access | Code path |
 |------|------|------------|-----------|
-| **Frontend** (Kivy kiosk) | `192.168.198.2` (`orangepizero3`) | `orangepi` / `orangepi` | `/home/orangepi/fortibank_atm/frontend` |
+| **Frontend** (Kivy kiosk) | `100.65.4.2` (`orangepizero3`) | `orangepi` / `orangepi` | `/home/orangepi/fortibank_atm/frontend` |
 | **Backend** (FastAPI core) | `192.168.241.11` (container `prod-fortibank_atm`) | `root` / `Fortinet1.` | `/app` |
 
 > These are **lab** credentials and must never be used outside the isolated lab.
@@ -21,7 +21,7 @@ If `sshpass` is unavailable, use an `SSH_ASKPASS` helper instead (see
 
 ---
 
-## Frontend — Orange Pi (`192.168.198.2`)
+## Frontend — Orange Pi (`100.65.4.2`)
 
 The frontend is a Kivy app run by systemd (`fortibank-app.service`) via
 `start_atm.sh`, which executes `frontend/.venv/bin/python main.py`.
@@ -34,7 +34,7 @@ cd /path/to/fortibank_atm
 rsync -av --delete \
   --exclude='.venv' --exclude='__pycache__' --exclude='settings.txt' \
   -e "sshpass -p orangepi ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-  frontend/ orangepi@192.168.198.2:/home/orangepi/fortibank_atm/frontend/
+  frontend/ orangepi@100.65.4.2:/home/orangepi/fortibank_atm/frontend/
 ```
 
 `settings.txt` is intentionally **excluded** — it holds the admin PIN and the
@@ -54,7 +54,7 @@ frontend/.venv/bin/python: No such file or directory
 Fix it by pointing `frontend/.venv` at the root venv:
 
 ```bash
-ssh orangepi@192.168.198.2 'ln -sfn ../.venv ~/fortibank_atm/frontend/.venv'
+ssh orangepi@100.65.4.2 'ln -sfn ../.venv ~/fortibank_atm/frontend/.venv'
 ```
 
 (If you prefer a real per-app venv, run `make install` on the device instead.)
@@ -71,20 +71,20 @@ If it is missing or wrong, the keep-alive will show **"Fuera de Servicio" /
 "Out of Service"**. Check it with:
 
 ```bash
-ssh orangepi@192.168.198.2 'cat ~/fortibank_atm/frontend/settings.txt'
+ssh orangepi@100.65.4.2 'cat ~/fortibank_atm/frontend/settings.txt'
 ```
 
 ### 4. Restart the app
 
 ```bash
-ssh orangepi@192.168.198.2 \
+ssh orangepi@100.65.4.2 \
   'echo orangepi | sudo -S -p "" systemctl restart fortibank-app'
 ```
 
 ### 5. Verify
 
 ```bash
-ssh orangepi@192.168.198.2 '
+ssh orangepi@100.65.4.2 '
   systemctl is-active fortibank-app
   systemctl is-enabled fortibank-app
   ps -ef | grep "[m]ain.py"
@@ -193,7 +193,7 @@ PY
 Run this **on the frontend** to confirm the kiosk can actually reach the core:
 
 ```bash
-ssh orangepi@192.168.198.2 '~/fortibank_atm/frontend/.venv/bin/python - <<PY
+ssh orangepi@100.65.4.2 '~/fortibank_atm/frontend/.venv/bin/python - <<PY
 import requests
 print("frontend->backend /docs ->", requests.get("http://192.168.241.11:8000/docs", timeout=5).status_code)
 PY'
@@ -207,7 +207,7 @@ link is healthy; the keep-alive overlay stays hidden while this succeeds.
 ## Makefile shortcuts
 
 ```bash
-make deploy-frontend   # rsync frontend/ to ATM_HOST (default orangepi@192.168.198.2)
+make deploy-frontend   # rsync frontend/ to ATM_HOST (default orangepi@100.65.4.2)
 make deploy-backend    # rsync backend/ to BACKEND_HOST (host-based install only)
 ```
 
@@ -233,5 +233,5 @@ make deploy-backend    # rsync backend/ to BACKEND_HOST (host-based install only
 
 | Host | User | Password |
 |------|------|----------|
-| `192.168.198.2` (frontend) | `orangepi` | `orangepi` |
+| `100.65.4.2` (frontend) | `orangepi` | `orangepi` |
 | `192.168.241.11` (backend container) | `root` | `Fortinet1.` |

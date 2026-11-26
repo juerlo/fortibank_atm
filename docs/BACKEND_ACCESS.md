@@ -86,7 +86,7 @@ so the ISO frames reach the frontend).
 
 ```json
 [
-  { "ip": "192.168.198.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
+  { "ip": "100.65.4.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
 ]
 ```
 
@@ -97,7 +97,7 @@ so the ISO frames reach the frontend).
 { "host": "orangepizero3" }
 
 // Response
-{ "ip": "192.168.198.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
+{ "ip": "100.65.4.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
 ```
 
 The frontend sends `X-Frontend-IP` and `X-Frontend-Host` headers on every

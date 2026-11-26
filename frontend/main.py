@@ -1352,7 +1352,7 @@ class FortiBankApp(App):
             r = subprocess.run(["ip", "-4", "-o", "addr", "show"],
                                capture_output=True, text=True, timeout=3)
             for line in r.stdout.splitlines():
-                # Format: "2: eth0    inet 192.168.198.2/24 scope global eth0"
+                # Format: "2: eth0    inet 100.65.4.2/24 scope global eth0"
                 parts = line.split()
                 if len(parts) >= 4 and parts[2] == "inet":
                     addr = parts[3].split("/")[0]
