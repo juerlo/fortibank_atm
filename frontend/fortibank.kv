@@ -3,7 +3,7 @@
 <HeaderBar@BoxLayout>:
     orientation: 'horizontal'
     size_hint_y: None
-    height: app.s(64)
+    height: app.scale * 64
     padding: [30, 15]
     canvas.before:
         Color:
@@ -28,7 +28,7 @@
     Button:
         id: clock_lbl
         text: app.clock_text
-        font_size: app.sfont(24)
+        font_size: app.scale * 24
         bold: True
         color: 1, 1, 1, 1
         halign: 'right'
@@ -51,13 +51,13 @@
 <AtmButton@BorderButton>:
     background_color: 0.12, 0.35, 0.58, 1
     color: 1, 1, 1, 1
-    font_size: app.sfont(22)
+    font_size: app.scale * 22
     bold: True
 
 <CancelButton@BorderButton>:
     background_color: 0.91, 0.30, 0.24, 1
     color: 1, 1, 1, 1
-    font_size: app.sfont(20)
+    font_size: app.scale * 20
     bold: True
 
 <NumKey@PushButton>:
@@ -151,28 +151,28 @@
             Label:
                 id: ins_title
                 text: "Deslice para seleccionar su tarjeta"
-                font_size: '32sp'
+                font_size: app.scale * 32
                 bold: True
                 color: 1, 1, 1, 1
                 size_hint_y: None
-                height: 50
+                height: app.scale * 50
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             Label:
                 id: ins_sub
                 text: "(Deslice izquierda/derecha y presione una tarjeta)"
-                font_size: '15sp'
+                font_size: app.scale * 15
                 color: 0.667, 0.667, 0.667, 1
                 size_hint_y: None
-                height: 25
+                height: app.scale * 25
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             ScrollView:
                 id: card_scroll
                 size_hint_y: None
-                height: 300
+                height: app.scale * 300
                 do_scroll_x: True
                 do_scroll_y: False
                 scroll_wheel_distance: 20
@@ -181,8 +181,8 @@
                     orientation: 'horizontal'
                     size_hint_x: None
                     width: self.minimum_width
-                    spacing: 20
-                    padding: [0, 20, 0, 20]
+                    spacing: app.scale * 20
+                    padding: [0, app.scale * 20, 0, app.scale * 20]
 
 <ScreenPin>:
     BoxLayout:
@@ -619,10 +619,10 @@
             Label:
                 id: admin_menu_title
                 text: "Menú de Administración"
-                font_size: app.sfont(28)
+                font_size: app.scale * 28
                 bold: True
                 size_hint_y: None
-                height: app.s(45)
+                height: app.scale * 45
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -647,10 +647,10 @@
                 Label:
                     id: admin_backend_lbl
                     text: "Backend IP:"
-                    font_size: app.sfont(20)
+                    font_size: app.scale * 20
                     bold: True
                     size_hint_x: None
-                    width: app.s(140)
+                    width: app.scale * 140
                     halign: 'left'
                     valign: 'middle'
                     text_size: self.size
@@ -660,7 +660,7 @@
                     background_normal: ''
                     background_color: 0.925, 0.941, 0.945, 1
                     color: 0.2, 0.2, 0.2, 1
-                    font_size: app.sfont(22)
+                    font_size: app.scale * 22
                     bold: True
                     on_release: app.open_admin_ip()
                 AtmButton:
@@ -672,20 +672,20 @@
             Label:
                 id: admin_frontend_ip
                 text: "IP Frontend: —"
-                font_size: app.sfont(18)
+                font_size: app.scale * 18
                 color: 0.64, 0.70, 0.78, 1
                 size_hint_y: None
-                height: app.s(26)
+                height: app.scale * 26
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             Label:
                 id: admin_status
                 text: ""
-                font_size: app.sfont(16)
+                font_size: app.scale * 16
                 color: 0.95, 0.61, 0.07, 1
                 size_hint_y: None
-                height: app.s(28)
+                height: app.scale * 28
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -693,7 +693,7 @@
                 cols: 3
                 spacing: 10
                 size_hint_y: None
-                height: app.s(225)
+                height: app.scale * 225
                 AtmButton:
                     id: admin_change_pin
                     text: "CAMBIAR NIP"
@@ -743,19 +743,19 @@
             spacing: 12
             Label:
                 text: app.t("frame_title")
-                font_size: app.sfont(28)
+                font_size: app.scale * 28
                 bold: True
                 size_hint_y: None
-                height: app.s(45)
+                height: app.scale * 45
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             Label:
                 text: app.t("frame_hint")
-                font_size: app.sfont(16)
+                font_size: app.scale * 16
                 color: 0.64, 0.70, 0.78, 1
                 size_hint_y: None
-                height: app.s(24)
+                height: app.scale * 24
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -763,7 +763,7 @@
                 cols: 2
                 spacing: 10
                 size_hint_y: None
-                height: app.s(280)
+                height: app.scale * 280
                 AtmButton:
                     text: app.t("frame_left_m")
                     on_release: app.frame_nudge("left", -10)
@@ -792,7 +792,7 @@
                 orientation: 'horizontal'
                 spacing: 12
                 size_hint_y: None
-                height: app.s(60)
+                height: app.scale * 60
                 AtmButton:
                     text: app.t("frame_reset")
                     on_release: app.frame_reset()

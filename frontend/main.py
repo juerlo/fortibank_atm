@@ -189,86 +189,63 @@ class ScreenInsert(ScreenBase):
         self.build_cards(App.get_running_app().cards)
 
     def build_cards(self, cards):
+        app = App.get_running_app()
+        s = app.scale
         container = self.ids.card_container
         container.clear_widgets()
         for c in cards:
             num = c.get("num", "")
             formatted = " ".join(num[i:i+4] for i in range(0, len(num), 4))
 
-            card = RelativeLayout(size_hint=(None, None), size=(320, 200))
+            W, H = int(320 * s), int(200 * s)
+            card = RelativeLayout(size_hint=(None, None), size=(W, H))
 
             # Background drawn by a child widget (relative coords — reliable for all cards)
-            bg = Widget(size_hint=(None, None), pos=(0, 0), size=(320, 200))
+            bg = Widget(size_hint=(None, None), pos=(0, 0), size=(W, H))
             with bg.canvas:
-                # box-shadow: 0 10px 20px rgba(0,0,0,0.6)
                 Color(0, 0, 0, 0.6)
-                RoundedRectangle(pos=(2, -6), size=(316, 200), radius=[15])
-                # base dark (end of 135° gradient -> #000)
+                RoundedRectangle(pos=(int(2*s), int(-6*s)), size=(int(316*s), H), radius=[int(15*s)])
                 Color(0.043, 0.059, 0.079, 1)
-                RoundedRectangle(pos=(0, 0), size=(320, 200), radius=[15])
-                # lighter top (start of 135° gradient -> #1e2a38), softened contrast
+                RoundedRectangle(pos=(0, 0), size=(W, H), radius=[int(15*s)])
                 Color(0.090, 0.125, 0.168, 1)
-                RoundedRectangle(pos=(0, 78), size=(320, 122), radius=[15, 15, 0, 0])
-                # border: 1px solid #555
+                RoundedRectangle(pos=(0, int(78*s)), size=(W, int(122*s)), radius=[int(15*s), int(15*s), 0, 0])
                 Color(0.333, 0.333, 0.333, 1)
-                Line(rounded_rectangle=(0, 0, 320, 200, 15), width=1)
+                Line(rounded_rectangle=(0, 0, W, H, int(15*s)), width=1)
 
-            # .chip — 45x35, #d4af37, radius 6, positioned 20px from top/left
-            chip = Widget(size_hint=(None, None), pos=(20, 145), size=(45, 35))
+            # .chip — 45x35, #d4af37, radius 6
+            chip = Widget(size_hint=(None, None), pos=(int(20*s), int(145*s)),
+                          size=(int(45*s), int(35*s)))
             with chip.canvas:
-                Color(0.831, 0.686, 0.216, 1)  # #d4af37
-                RoundedRectangle(pos=chip.pos, size=chip.size, radius=[6])
-                # diagonal highlight (approximation of the CSS gradient overlay)
+                Color(0.831, 0.686, 0.216, 1)
+                RoundedRectangle(pos=chip.pos, size=chip.size, radius=[int(6*s)])
                 Color(1, 1, 1, 0.30)
-                RoundedRectangle(pos=(chip.x + 12, chip.y + 8), size=(chip.width - 16, chip.height - 16), radius=[4])
+                RoundedRectangle(pos=(chip.x + int(12*s), chip.y + int(8*s)),
+                                 size=(chip.width - int(16*s), chip.height - int(16*s)),
+                                 radius=[int(4*s)])
 
-            # .card-number — monospace, white, 1.2rem, letter-spacing 2px
             num_lbl = Label(
-                text=formatted,
-                font_size='17sp',
-                bold=True,
-                color=(1, 1, 1, 1),
-                halign='left',
-                valign='middle',
-                size_hint=(None, None),
-                pos=(20, 100),
-                size=(280, 24),
-                text_size=(280, 24),
+                text=formatted, font_size=max(1, int(17 * s)), bold=True,
+                color=(1, 1, 1, 1), halign='left', valign='middle',
+                size_hint=(None, None), pos=(int(20*s), int(100*s)),
+                size=(int(280*s), int(24*s)), text_size=(int(280*s), int(24*s)),
             )
-
-            # .card-name — 1rem, uppercase, #ddd
             name_lbl = Label(
-                text=c["name"].upper(),
-                font_size='14sp',
-                color=(0.867, 0.867, 0.867, 1),  # #ddd
-                halign='left',
-                valign='middle',
-                size_hint=(None, None),
-                pos=(20, 66),
-                size=(230, 22),
-                text_size=(230, 22),
+                text=c["name"].upper(), font_size=max(1, int(14 * s)),
+                color=(0.867, 0.867, 0.867, 1), halign='left', valign='middle',
+                size_hint=(None, None), pos=(int(20*s), int(66*s)),
+                size=(int(230*s), int(22*s)), text_size=(int(230*s), int(22*s)),
             )
-
-            # .card-brand — right:20, bottom:20, width:60
             brand_img = Image(
                 source=os.path.join(
                     FRONTEND_DIR,
                     "visa.png" if c["brand"] == "VISA" else "mastercard.png",
                 ),
-                size_hint=(None, None),
-                pos=(240, 20),
-                size=(60, 40),
-                fit_mode="contain",
+                size_hint=(None, None), pos=(int(240*s), int(20*s)),
+                size=(int(60*s), int(40*s)), fit_mode="contain",
             )
-
-            # Transparent button overlay for tap-to-select
             select_btn = Button(
-                size_hint=(None, None),
-                pos=(0, 0),
-                size=(320, 200),
-                background_normal='',
-                background_color=(0, 0, 0, 0),
-                opacity=0,
+                size_hint=(None, None), pos=(0, 0), size=(W, H),
+                background_normal='', background_color=(0, 0, 0, 0), opacity=0,
             )
             select_btn.bind(on_release=lambda inst, card=c: App.get_running_app().insert_card(card))
 
@@ -739,6 +716,35 @@ class Manager(ScreenManager):
         return super().on_touch_down(touch)
 
 
+class RootLayout(FloatLayout):
+    """Full-window root that holds the Manager and exposes its API.
+
+    The Manager is positioned/sized to the safe area (frame margins) inside
+    this wrapper, so the whole UI fits the visible region while the root
+    itself stays full-window (Kivy forces the root's size to the window).
+    """
+
+    def __init__(self, manager, **kw):
+        super().__init__(**kw)
+        self.manager = manager
+        self.add_widget(manager)
+
+    def get_screen(self, name):
+        return self.manager.get_screen(name)
+
+    @property
+    def screens(self):
+        return self.manager.screens
+
+    @property
+    def current(self):
+        return self.manager.current
+
+    @current.setter
+    def current(self, value):
+        self.manager.current = value
+
+
 class OOSOverlay(FloatLayout):
     """Solid-blue, interaction-blocking overlay shown while the backend is down.
 
@@ -842,11 +848,13 @@ class FortiBankApp(App):
         self.oos_label = self.oos_overlay.label
         self.oos_overlay.opacity = 0
         self.manager = Manager()
-        # Apply the safe-area (frame margins) once the window is up, and
-        # re-apply on resize so the UI stays inside the visible region.
+        # The root is a full-window wrapper; the Manager inside is sized and
+        # positioned to the safe area (frame margins) so the UI fits the
+        # visible region. Re-applied on start and on window resize.
+        root = RootLayout(self.manager)
         Clock.schedule_once(lambda dt: self._apply_safe_area(), 0)
         Window.bind(size=lambda *a: self._apply_safe_area())
-        return self.manager
+        return root
 
     def _load_sound(self, filename):
         path = os.path.join(FRONTEND_DIR, filename)
@@ -1281,11 +1289,7 @@ class FortiBankApp(App):
     # ------------------------------------------------------------------
     _RESOLUTION_PRESETS = [(1024, 600), (1920, 1080)]
 
-    @property
-    def scale(self):
-        l, t, r, b = self._safe_margins()
-        safe_w = max(1, Window.width - l - r)
-        return safe_w / 1024.0
+    scale = NumericProperty(1.0)
 
     def s(self, px):
         """Scale a fixed pixel size to the current window width."""
@@ -1310,12 +1314,26 @@ class FortiBankApp(App):
 
     def _apply_safe_area(self):
         m = getattr(self, "manager", None)
-        if m is None:
-            return
         l, t, r, b = self._safe_margins()
-        m.size_hint = (None, None)
-        m.size = (max(1, Window.width - l - r), max(1, Window.height - t - b))
-        m.pos = (l, b)
+        safe_w = max(1, Window.width - l - r)
+        safe_h = max(1, Window.height - t - b)
+        # Update the reactive scale factor (drives KV bindings) and resize
+        # the Manager to the visible region.
+        self.scale = safe_w / 1024.0
+        if m is not None:
+            m.size_hint = (None, None)
+            m.size = (safe_w, safe_h)
+            m.pos = (l, b)
+        # Rebuild the card carousel so it scales with the new factor.
+        self._rebuild_cards()
+
+    def _rebuild_cards(self):
+        try:
+            scr = self.root.get_screen('insert')
+            if hasattr(scr, 'build_cards'):
+                scr.build_cards(self.cards)
+        except Exception:
+            pass
 
     def open_frame_cfg(self):
         self.root.current = 'framecfg'
