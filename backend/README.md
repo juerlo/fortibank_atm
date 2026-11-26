@@ -188,7 +188,7 @@ report which frontends are alive.
 { "host": "orangepizero3" }
 
 // Response (found)
-{ "ip": "192.168.198.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
+{ "ip": "100.65.4.2", "host": "orangepizero3", "last_seen": "2026-11-24T20:31:27" }
 
 // Response (unknown host)
 { "ip": null, "host": "unknown-host", "last_seen": "" }

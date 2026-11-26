@@ -92,7 +92,7 @@ code.
 | `make run-frontend` | Run the Kivy ATM app |
 | `make run-backend` | Run the FastAPI backend (uvicorn, port 8000) |
 | `make test` | Syntax-check all Python sources |
-| `make deploy-frontend` | rsync `frontend/` to `ATM_HOST` (default `orangepi@192.168.210.8`) |
+| `make deploy-frontend` | rsync `frontend/` to `ATM_HOST` (default `orangepi@100.65.4.2`) |
 | `make deploy-backend` | rsync `backend/` to `BACKEND_HOST` (default `jelopez@192.168.241.6`) |
 | `make clean` | Remove venvs and `__pycache__` |
 
@@ -155,7 +155,7 @@ automatically):
 ```ini
 language=es
 timezone=America/Mexico_City
-backend_ip=192.168.27.35
+backend_ip=192.168.241.11
 admin_pin=0000
 saver_timeout=120
 screenoff_timeout=0
