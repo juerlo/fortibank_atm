@@ -29,6 +29,11 @@ All notable changes to this project are documented here.
   the connected display actually supports are offered (verified via `xrandr`);
   if the saved resolution is unsupported, `start_atm.sh` safely falls back to
   1024×600 so the screen never gets stuck blank.
+- Frontend: Admin menu has a "MARCO" (Frame) button that opens a frame-adjustment
+  screen. The physical frame/bezel covers the screen edges; the safe-area margins
+  (`safe_left/top/right/bottom` in `settings.txt`) define the visible region. The
+  UI is sized/positioned to fit inside it and scales proportionally (based on the
+  safe width). Margins persist across reboots and are re-applied on every start.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend

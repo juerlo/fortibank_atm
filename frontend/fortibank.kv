@@ -137,6 +137,8 @@
         name: 'savercfg'
     AdminIpScreen:
         name: 'adminip'
+    FrameCfgScreen:
+        name: 'framecfg'
 
 <ScreenInsert>:
     BoxLayout:
@@ -724,6 +726,79 @@
                     id: admin_resolution_btn
                     text: "RESOLUCIÓN"
                     on_release: app.cycle_resolution()
+                AtmButton:
+                    id: admin_frame_btn
+                    text: "MARCO"
+                    on_release: app.open_frame_cfg()
+            Widget:
+                size_hint_y: 1
+
+<FrameCfgScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        HeaderBar
+        BoxLayout:
+            orientation: 'vertical'
+            padding: [50, 30]
+            spacing: 12
+            Label:
+                text: app.t("frame_title")
+                font_size: app.sfont(28)
+                bold: True
+                size_hint_y: None
+                height: app.s(45)
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
+            Label:
+                text: app.t("frame_hint")
+                font_size: app.sfont(16)
+                color: 0.64, 0.70, 0.78, 1
+                size_hint_y: None
+                height: app.s(24)
+                halign: 'center'
+                valign: 'middle'
+                text_size: self.size
+            GridLayout:
+                cols: 2
+                spacing: 10
+                size_hint_y: None
+                height: app.s(280)
+                AtmButton:
+                    text: app.t("frame_left_m")
+                    on_release: app.frame_nudge("left", -10)
+                AtmButton:
+                    text: app.t("frame_left_p")
+                    on_release: app.frame_nudge("left", 10)
+                AtmButton:
+                    text: app.t("frame_right_m")
+                    on_release: app.frame_nudge("right", -10)
+                AtmButton:
+                    text: app.t("frame_right_p")
+                    on_release: app.frame_nudge("right", 10)
+                AtmButton:
+                    text: app.t("frame_top_m")
+                    on_release: app.frame_nudge("top", -10)
+                AtmButton:
+                    text: app.t("frame_top_p")
+                    on_release: app.frame_nudge("top", 10)
+                AtmButton:
+                    text: app.t("frame_bottom_m")
+                    on_release: app.frame_nudge("bottom", -10)
+                AtmButton:
+                    text: app.t("frame_bottom_p")
+                    on_release: app.frame_nudge("bottom", 10)
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 12
+                size_hint_y: None
+                height: app.s(60)
+                AtmButton:
+                    text: app.t("frame_reset")
+                    on_release: app.frame_reset()
+                CancelButton:
+                    text: app.t("frame_back")
+                    on_release: app.open_admin_menu()
             Widget:
                 size_hint_y: 1
 

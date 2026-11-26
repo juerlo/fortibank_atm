@@ -706,6 +706,19 @@ class ScreenSaverCfg(ScreenBase):
         App.get_running_app().open_admin_menu()
 
 
+class FrameCfgScreen(ScreenBase):
+    """Admin screen to adjust the safe-area (frame) margins."""
+
+    def nudge(self, side, delta):
+        App.get_running_app().frame_nudge(side, delta)
+
+    def reset(self):
+        App.get_running_app().frame_reset()
+
+    def back(self):
+        App.get_running_app().open_admin_menu()
+
+
 class Manager(ScreenManager):
     def on_touch_down(self, touch):
         app = App.get_running_app()
@@ -828,7 +841,12 @@ class FortiBankApp(App):
         self.oos_overlay = OOSOverlay()
         self.oos_label = self.oos_overlay.label
         self.oos_overlay.opacity = 0
-        return Manager()
+        self.manager = Manager()
+        # Apply the safe-area (frame margins) once the window is up, and
+        # re-apply on resize so the UI stays inside the visible region.
+        Clock.schedule_once(lambda dt: self._apply_safe_area(), 0)
+        Window.bind(size=lambda *a: self._apply_safe_area())
+        return self.manager
 
     def _load_sound(self, filename):
         path = os.path.join(FRONTEND_DIR, filename)
@@ -1265,7 +1283,9 @@ class FortiBankApp(App):
 
     @property
     def scale(self):
-        return Window.width / 1024.0
+        l, t, r, b = self._safe_margins()
+        safe_w = max(1, Window.width - l - r)
+        return safe_w / 1024.0
 
     def s(self, px):
         """Scale a fixed pixel size to the current window width."""
@@ -1274,6 +1294,47 @@ class FortiBankApp(App):
     def sfont(self, px):
         """Scale a fixed font size (in sp) to the current window width."""
         return str(int(px * self.scale)) + 'sp'
+
+    # ------------------------------------------------------------------
+    # Safe area / frame margins: the physical frame covers the outer edges
+    # of the screen. These margins define the visible region; the UI is
+    # sized/positioned to fit inside it and scales proportionally.
+    # ------------------------------------------------------------------
+    def _safe_margins(self):
+        def g(k):
+            try:
+                return max(0, int(self.settings.get(k, "0")))
+            except Exception:
+                return 0
+        return g("safe_left"), g("safe_top"), g("safe_right"), g("safe_bottom")
+
+    def _apply_safe_area(self):
+        m = getattr(self, "manager", None)
+        if m is None:
+            return
+        l, t, r, b = self._safe_margins()
+        m.size_hint = (None, None)
+        m.size = (max(1, Window.width - l - r), max(1, Window.height - t - b))
+        m.pos = (l, b)
+
+    def open_frame_cfg(self):
+        self.root.current = 'framecfg'
+
+    def frame_nudge(self, side, delta):
+        key = "safe_" + side
+        try:
+            cur = int(self.settings.get(key, "0"))
+        except Exception:
+            cur = 0
+        cur = max(0, cur + delta)
+        self.settings.set(key, str(cur), persist=True)
+        self._apply_safe_area()
+
+    def frame_reset(self):
+        for k in ("safe_left", "safe_top", "safe_right", "safe_bottom"):
+            self.settings.set(k, "0", persist=False)
+        self.settings.save()
+        self._apply_safe_area()
 
     def _supported_presets(self):
         # Query xrandr for modes the connected display actually supports and
