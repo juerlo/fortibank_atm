@@ -1384,15 +1384,10 @@ class FortiBankApp(App):
         return {}
 
     def _do_lookup_frontend_ip(self):
-        # Ask the backend for the latest IP it knows for this hostname.
-        host = socket.gethostname()
-        url = self._api_url("/api/frontend-ip")
-        try:
-            r = requests.post(url, json={"host": host}, timeout=4)
-            data = r.json()
-            self._set_frontend_ip_label(data.get("ip"), host)
-        except Exception:
-            self._set_frontend_ip_label(None, host)
+        # Read this frontend's own IP/hostname directly from the OS network
+        # interface (no backend round-trip needed).
+        ip, host = self._frontend_ip()
+        self._set_frontend_ip_label(ip, host)
 
     @mainthread
     def _set_frontend_ip_label(self, ip, host):
