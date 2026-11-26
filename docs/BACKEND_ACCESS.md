@@ -7,17 +7,17 @@ credentials are intentionally weak; do not use them outside the lab.
 
 | Item | Value |
 |------|-------|
-| Host | `192.168.27.35` |
+| Host | `192.168.241.11` |
 | SSH user | `fortilab` |
 | SSH password | `Fortinet1.` |
 | HTTP port | `8000` |
-| API docs (Swagger) | http://192.168.27.35:8000/docs |
-| OpenAPI spec | http://192.168.27.35:8000/openapi.json |
+| API docs (Swagger) | http://192.168.241.11:8000/docs |
+| OpenAPI spec | http://192.168.241.11:8000/openapi.json |
 
-Interactive login (from the Orange Pi or any host that can reach 192.168.27.35):
+Interactive login (from the Orange Pi or any host that can reach 192.168.241.11):
 
 ```bash
-ssh fortilab@192.168.27.35
+ssh fortilab@192.168.241.11
 # password: Fortinet1.
 ```
 
@@ -26,7 +26,7 @@ Non-interactive (from the Pi, via SSH_ASKPASS so no TTY is required):
 ```bash
 printf '#!/bin/sh\necho Fortinet1.\n' > /tmp/askpass.sh && chmod +x /tmp/askpass.sh
 SSH_ASKPASS=/tmp/askpass.sh SSH_ASKPASS_REQUIRE=force setsid -w \
-  ssh -o StrictHostKeyChecking=no fortilab@192.168.27.35 'echo OK'
+  ssh -o StrictHostKeyChecking=no fortilab@192.168.241.11 'echo OK'
 ```
 
 ## Layout

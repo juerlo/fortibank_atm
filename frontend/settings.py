@@ -11,7 +11,7 @@ SETTINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settin
 DEFAULTS = {
     "language": "es",
     "timezone": "America/Mexico_City",
-    "backend_ip": "192.168.27.35",
+    "backend_ip": "192.168.241.11",
     "admin_pin": "0000",
     "saver_timeout": "120",
     "screenoff_timeout": "0",

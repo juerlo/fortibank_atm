@@ -1344,18 +1344,35 @@ class FortiBankApp(App):
         return base + path
 
     def _frontend_ip(self):
-        # Return (ip, hostname) of this frontend as seen on the backend-facing
-        # interface. Returns ("", "") if the IP cannot be determined.
+        # Return (ip, hostname) of this frontend, read directly from the Linux
+        # network interface. Picks the first non-loopback IPv4 address. Falls
+        # back to the UDP-socket-to-backend trick if `ip` is unavailable.
         ip = ""
         try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            try:
-                s.connect((self.settings.backend_ip, 8000))
-                ip = s.getsockname()[0]
-            finally:
-                s.close()
+            r = subprocess.run(["ip", "-4", "-o", "addr", "show"],
+                               capture_output=True, text=True, timeout=3)
+            for line in r.stdout.splitlines():
+                # Format: "2: eth0    inet 192.168.198.2/24 scope global eth0"
+                parts = line.split()
+                if len(parts) >= 4 and parts[2] == "inet":
+                    addr = parts[3].split("/")[0]
+                    if addr and not addr.startswith("127."):
+                        ip = addr
+                        break
         except Exception:
             ip = ""
+        if not ip:
+            # Fallback: UDP socket connect to backend to discover the
+            # interface IP that routes toward it.
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                try:
+                    s.connect((self.settings.backend_ip, 8000))
+                    ip = s.getsockname()[0]
+                finally:
+                    s.close()
+            except Exception:
+                ip = ""
         return ip, (socket.gethostname() if ip else "")
 
     def _client_headers(self):
