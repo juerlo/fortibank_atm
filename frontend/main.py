@@ -700,16 +700,6 @@ class Manager(ScreenManager):
     def on_touch_down(self, touch):
         app = App.get_running_app()
         if app is not None:
-            # Map the window touch into the scaled design space (the canvas
-            # transform may scale/translate the whole UI into the safe area).
-            try:
-                nx = (touch.x - app._tx) / app._sx
-                ny = (touch.y - app._ty) / app._sy
-                touch.x = nx
-                touch.y = ny
-                touch.pos = (nx, ny)
-            except Exception:
-                pass
             # Any activity resets the idle timer and wakes the display
             app._last_activity = time.time()
             if app._screen_off:
@@ -1332,20 +1322,13 @@ class FortiBankApp(App):
         safe_h = max(1, Window.height - t - b)
         # Uniform scale keeps the original 1024x600 proportions (no squish).
         s = min(safe_w / 1024.0, safe_h / 600.0)
-        # Center the scaled design inside the safe rectangle.
-        ox = l + (safe_w - 1024 * s) / 2.0
-        oy = b + (safe_h - 600 * s) / 2.0
-        self._tx, self._ty = ox, oy
-        self._sx = self._sy = s
-        m.canvas.before.clear()
-        with m.canvas.before:
-            PushMatrix()
-            Translate(ox, oy)
-            Scale(s, s)
-        m.canvas.after.clear()
-        with m.canvas.after:
-            PopMatrix()
-        # Rebuild the card carousel so it scales with the new factor.
+        sw, sh = int(1024 * s), int(600 * s)
+        ox = int(l + (safe_w - sw) / 2)
+        oy = int(b + (safe_h - sh) / 2)
+        m.size_hint = (None, None)
+        m.size = (sw, sh)
+        m.pos = (ox, oy)
+        self.scale = s
         self._rebuild_cards()
 
     def _rebuild_cards(self):

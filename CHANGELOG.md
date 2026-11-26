@@ -31,12 +31,11 @@ All notable changes to this project are documented here.
   1024×600 so the screen never gets stuck blank.
 - Frontend: Admin menu has a "MARCO" (Frame) button that opens a frame-adjustment
   screen. The physical frame/bezel covers the screen edges; the safe-area margins
-  (`safe_left/top/right/bottom` in `settings.txt`) define the visible region. A
-  canvas transform (translate + scale) maps the 1024×600 design into the safe
-  rectangle, so the whole UI (top bar, text, line, buttons, carousel cards) fits
-  the visible region and scales proportionally — including live when nudged.
-  Touch coordinates are mapped back into design space so taps stay accurate.
-  Margins persist across reboots and are re-applied on every start.
+  (`safe_left/top/right/bottom` in `settings.txt`) define the visible region. The
+  Manager is resized to a uniform-scaled (proportions kept) rectangle centered in
+  the safe area; a reactive `scale` factor resizes fonts/buttons/cards live. The
+  top bar, text, orange line, buttons and carousel cards all shrink and recenter
+  when a margin is nudged. Margins persist and are re-applied on every start.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend
