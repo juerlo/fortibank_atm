@@ -1330,16 +1330,18 @@ class FortiBankApp(App):
         l, t, r, b = self._safe_margins()
         safe_w = max(1, Window.width - l - r)
         safe_h = max(1, Window.height - t - b)
-        # Map the 1024x600 design space into the safe rectangle via a canvas
-        # transform (translate + scale). The Manager stays full-window.
-        self._tx, self._ty = l, b
-        self._sx = safe_w / 1024.0
-        self._sy = safe_h / 600.0
+        # Uniform scale keeps the original 1024x600 proportions (no squish).
+        s = min(safe_w / 1024.0, safe_h / 600.0)
+        # Center the scaled design inside the safe rectangle.
+        ox = l + (safe_w - 1024 * s) / 2.0
+        oy = b + (safe_h - 600 * s) / 2.0
+        self._tx, self._ty = ox, oy
+        self._sx = self._sy = s
         m.canvas.before.clear()
         with m.canvas.before:
             PushMatrix()
-            Translate(l, b)
-            Scale(self._sx, self._sy)
+            Translate(ox, oy)
+            Scale(s, s)
         m.canvas.after.clear()
         with m.canvas.after:
             PopMatrix()
