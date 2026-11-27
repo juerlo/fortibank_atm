@@ -3,8 +3,8 @@
 <HeaderBar@BoxLayout>:
     orientation: 'horizontal'
     size_hint_y: None
-    height: app.scale * 64
-    padding: [30, 15]
+    height: app.sy * 64
+    padding: [app.sx * 30, app.sy * 15]
     canvas.before:
         Color:
             rgba: 0, 0, 0, 0.4
@@ -64,35 +64,35 @@
     background_normal: ''
     background_color: 0.925, 0.941, 0.945, 1
     color: 0.2, 0.2, 0.2, 1
-    font_size: '26sp'
+    font_size: app.scale * 26
     bold: True
 
 <ClearKey@PushButton>:
     background_normal: ''
     background_color: 0.902, 0.494, 0.133, 1
     color: 1, 1, 1, 1
-    font_size: '18sp'
+    font_size: app.scale * 18
     bold: True
 
 <EnterKey@PushButton>:
     background_normal: ''
     background_color: 0.153, 0.682, 0.376, 1
     color: 1, 1, 1, 1
-    font_size: '18sp'
+    font_size: app.scale * 18
     bold: True
 
 <PinCancelButton@PushButton>:
     background_normal: ''
     background_color: 0.91, 0.30, 0.24, 1
     color: 1, 1, 1, 1
-    font_size: '18sp'
+    font_size: app.scale * 18
     bold: True
 
 <MenuButton@PushButton>:
     background_normal: ''
     background_color: 1, 1, 1, 0.10
     color: 1, 1, 1, 1
-    font_size: '22sp'
+    font_size: app.scale * 22
     bold: True
     canvas.after:
         Color:
@@ -106,7 +106,7 @@
         Color:
             rgba: 0.04, 0.23, 0.44, 1
         Rectangle:
-            pos: self.pos
+            pos: 0, 0
             size: self.size
 
 <Manager>:
@@ -146,8 +146,8 @@
         HeaderBar:
         BoxLayout:
             orientation: 'vertical'
-            padding: [30, 20]
-            spacing: 10
+            padding: [app.sx * 30, app.sy * 20]
+            spacing: app.scale * 10
             Label:
                 id: ins_title
                 text: "Deslice para seleccionar su tarjeta"
@@ -155,7 +155,7 @@
                 bold: True
                 color: 1, 1, 1, 1
                 size_hint_y: None
-                height: app.scale * 50
+                height: app.sy * 50
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -165,14 +165,14 @@
                 font_size: app.scale * 15
                 color: 0.667, 0.667, 0.667, 1
                 size_hint_y: None
-                height: app.scale * 25
+                height: app.sy * 25
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             ScrollView:
                 id: card_scroll
                 size_hint_y: None
-                height: app.scale * 300
+                height: app.sy * 300
                 do_scroll_x: True
                 do_scroll_y: False
                 scroll_wheel_distance: 20
@@ -182,7 +182,7 @@
                     size_hint_x: None
                     width: self.minimum_width
                     spacing: app.scale * 20
-                    padding: [0, app.scale * 20, 0, app.scale * 20]
+                    padding: [0, app.sy * 20, 0, app.sy * 20]
 
 <ScreenPin>:
     BoxLayout:
@@ -193,24 +193,24 @@
         Label:
             id: pin_title
             text: "Ingrese su NIP de 4 dígitos"
-            font_size: '30sp'
+            font_size: app.scale * 30
             bold: True
             size_hint_y: None
-            height: 50
+            height: app.sy * 50
             halign: 'center'
             valign: 'middle'
             text_size: self.size
         AnchorLayout:
             size_hint_y: None
-            height: 92
+            height: app.sy * 92
             Label:
                 id: nip_display
                 text: ""
-                font_size: '44sp'
+                font_size: app.scale * 44
                 bold: True
                 color: 0.067, 0.067, 0.067, 1
                 size_hint: None, None
-                size: 300, 70
+                size: app.sx * 300, app.sy * 70
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -220,15 +220,15 @@
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [8]
+                        radius: [app.scale * 8]
         AnchorLayout:
             size_hint_y: None
-            height: 262
+            height: app.sy * 262
             GridLayout:
                 cols: 3
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint: None, None
-                size: 320, 262
+                size: app.sx * 320, app.sy * 262
                 NumKey:
                     text: "1"
                     on_release: root.append_nip("1")
@@ -267,11 +267,11 @@
                     on_release: root.submit_nip()
         AnchorLayout:
             size_hint_y: None
-            height: 78
+            height: app.sy * 78
             PinCancelButton:
                 text: "CANCELAR OPERACIÓN"
                 size_hint: None, None
-                size: 320, 58
+                size: app.sx * 320, app.sy * 58
                 on_release: app.eject_card()
         Widget:
             size_hint_y: 1
@@ -282,28 +282,28 @@
         HeaderBar:
         BoxLayout:
             orientation: 'vertical'
-            padding: [80, 40]
-            spacing: 30
+            padding: [app.sx * 80, app.sy * 40]
+            spacing: app.scale * 30
             Widget:
                 size_hint_y: 1
             Label:
                 id: menu_title
                 text: "Seleccione una operación"
-                font_size: '32sp'
+                font_size: app.scale * 32
                 bold: True
                 size_hint_y: None
-                height: 50
+                height: app.sy * 50
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             AnchorLayout:
                 size_hint_y: None
-                height: 90
+                height: app.sy * 90
                 GridLayout:
                     cols: 2
-                    spacing: 20
+                    spacing: app.scale * 20
                     size_hint: None, None
-                    size: 695, 90
+                    size: app.sx * 695, app.sy * 90
                     MenuButton:
                         id: menu_withdraw
                         text: "RETIRO DE EFECTIVO"
@@ -314,12 +314,12 @@
                         on_release: app.start_transaction(0, False)
             AnchorLayout:
                 size_hint_y: None
-                height: 80
+                height: app.sy * 80
                 CancelButton:
                     id: menu_cancel
                     text: "CANCELAR Y RETIRAR TARJETA"
                     size_hint: None, None
-                    size: 432, 60
+                    size: app.sx * 432, app.sy * 60
                     on_release: app.eject_card()
             Widget:
                 size_hint_y: 1
@@ -330,26 +330,26 @@
         HeaderBar:
         BoxLayout:
             orientation: 'vertical'
-            padding: [60, 25]
-            spacing: 20
+            padding: [app.sx * 60, app.sy * 25]
+            spacing: app.scale * 20
             Label:
                 id: amt_title
                 text: "Seleccione la cantidad a retirar"
-                font_size: '30sp'
+                font_size: app.scale * 30
                 bold: True
                 size_hint_y: None
-                height: 45
+                height: app.sy * 45
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             AnchorLayout:
                 size_hint_y: None
-                height: 340
+                height: app.sy * 340
                 GridLayout:
                     cols: 2
-                    spacing: 15
+                    spacing: app.scale * 15
                     size_hint: None, None
-                    size: 700, 340
+                    size: app.sx * 700, app.sy * 340
                     AtmButton:
                         text: "$ 100 MXN"
                         on_release: app.start_transaction(100, True)
@@ -382,28 +382,28 @@
         HeaderBar:
         BoxLayout:
             orientation: 'vertical'
-            padding: [60, 40]
-            spacing: 20
+            padding: [app.sx * 60, app.sy * 40]
+            spacing: app.scale * 20
             Label:
                 id: proc_msg
                 text: "Procesando por red Fortinet ZTNA..."
-                font_size: '30sp'
+                font_size: app.scale * 30
                 bold: True
             Label:
                 id: timer_lbl
                 text: "Tiempo restante: 30s"
-                font_size: '22sp'
+                font_size: app.scale * 22
                 color: 0.95, 0.61, 0.07, 1
                 bold: True
             Label:
                 id: iso_proc_lbl
                 text: "[SYS] Conectando al Core Bancario (192.168.241.11)..."
-                font_size: '16sp'
+                font_size: app.scale * 16
                 color: 0.18, 0.80, 0.44, 1
                 halign: 'left'
                 valign: 'top'
                 text_size: self.size
-                padding: [15, 15]
+                padding: [app.sx * 15, app.sy * 15]
                 canvas.before:
                     Color:
                         rgba: 0, 0, 0, 0.85
@@ -417,26 +417,26 @@
         HeaderBar:
         BoxLayout:
             orientation: 'vertical'
-            padding: [40, 20]
-            spacing: 10
+            padding: [app.sx * 40, app.sy * 20]
+            spacing: app.scale * 10
             Label:
                 id: disp_title
                 text: "Contando billetes..."
-                font_size: '30sp'
+                font_size: app.scale * 30
                 bold: True
                 size_hint_y: None
-                height: 45
+                height: app.sy * 45
             Label:
                 id: disp_sub
                 text: "Por favor espere"
-                font_size: '20sp'
+                font_size: app.scale * 20
                 size_hint_y: None
-                height: 30
+                height: app.sy * 30
             FloatLayout:
                 id: bill_area
                 Widget:
                     size_hint: None, None
-                    size: 420, 22
+                    size: app.sx * 420, app.sy * 22
                     pos_hint: {'center_x': 0.5, 'top': 0.95}
                     canvas:
                         Color:
@@ -444,47 +444,46 @@
                         RoundedRectangle:
                             pos: self.pos
                             size: self.size
-                            radius: [6]
-
+                            radius: [app.scale * 6]
 <ScreenResult>:
     BoxLayout:
         orientation: 'vertical'
         HeaderBar:
         BoxLayout:
             orientation: 'vertical'
-            padding: [60, 25]
-            spacing: 18
+            padding: [app.sx * 60, app.sy * 25]
+            spacing: app.scale * 18
             Label:
                 id: res_title
                 text: "Operación Exitosa"
-                font_size: '32sp'
+                font_size: app.scale * 32
                 bold: True
                 color: 0.18, 0.80, 0.44, 1
                 size_hint_y: None
-                height: 45
+                height: app.sy * 45
             Label:
                 id: res_detail
                 text: "Saldo Disponible: $0.00 MXN"
-                font_size: '26sp'
+                font_size: app.scale * 26
                 bold: True
                 size_hint_y: None
-                height: 55
+                height: app.sy * 55
                 canvas.before:
                     Color:
                         rgba: 0, 0, 0, 0.4
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [8]
+                        radius: [app.scale * 8]
             Label:
                 id: res_iso
                 text: "[SYS] Tráfico SASE Inspeccionado:"
-                font_size: '15sp'
+                font_size: app.scale * 15
                 color: 0.18, 0.80, 0.44, 1
                 halign: 'left'
                 valign: 'top'
                 text_size: self.size
-                padding: [15, 12]
+                padding: [app.sx * 15, app.sy * 12]
                 canvas.before:
                     Color:
                         rgba: 0, 0, 0, 0.85
@@ -493,9 +492,9 @@
                         size: self.size
             BoxLayout:
                 orientation: 'horizontal'
-                spacing: 30
+                spacing: app.scale * 30
                 size_hint_y: None
-                height: 65
+                height: app.sy * 65
                 AtmButton:
                     id: res_again
                     text: "OTRO MOVIMIENTO"
@@ -514,32 +513,32 @@
             size_hint_y: 1
         Label:
             text: root.title
-            font_size: '28sp'
+            font_size: app.scale * 28
             bold: True
             size_hint_y: None
-            height: 45
+            height: app.sy * 45
             halign: 'center'
             valign: 'middle'
             text_size: self.size
         Label:
             text: root.msg
-            font_size: '18sp'
+            font_size: app.scale * 18
             color: 0.95, 0.61, 0.07, 1
             size_hint_y: None
-            height: 30
+            height: app.sy * 30
             halign: 'center'
             valign: 'middle'
             text_size: self.size
         AnchorLayout:
             size_hint_y: None
-            height: 92
+            height: app.sy * 92
             Label:
                 text: root.pin_display
-                font_size: '44sp'
+                font_size: app.scale * 44
                 bold: True
                 color: 0.067, 0.067, 0.067, 1
                 size_hint: None, None
-                size: 300, 70
+                size: app.sx * 300, app.sy * 70
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -549,15 +548,15 @@
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [8]
+                        radius: [app.scale * 8]
         AnchorLayout:
             size_hint_y: None
-            height: 262
+            height: app.sy * 262
             GridLayout:
                 cols: 3
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint: None, None
-                size: 320, 262
+                size: app.sx * 320, app.sy * 262
                 NumKey:
                     text: "1"
                     on_release: root.append_digit("1")
@@ -598,12 +597,12 @@
                     on_release: root.submit()
         AnchorLayout:
             size_hint_y: None
-            height: 78
+            height: app.sy * 78
             PinCancelButton:
                 id: admin_pin_cancel
                 text: "CANCELAR"
                 size_hint: None, None
-                size: 320, 58
+                size: app.sx * 320, app.sy * 58
                 on_release: root.cancel()
         Widget:
             size_hint_y: 1
@@ -614,23 +613,23 @@
         HeaderBar
         BoxLayout:
             orientation: 'vertical'
-            padding: [50, 30]
-            spacing: 12
+            padding: [app.sx * 50, app.sy * 30]
+            spacing: app.scale * 12
             Label:
                 id: admin_menu_title
                 text: "Menú de Administración"
                 font_size: app.scale * 28
                 bold: True
                 size_hint_y: None
-                height: app.scale * 45
+                height: app.sy * 45
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             GridLayout:
                 cols: 2
-                spacing: 12
+                spacing: app.scale * 12
                 size_hint_y: None
-                height: 100
+                height: app.sy * 100
                 AtmButton:
                     id: admin_lang_btn
                     text: "Idioma: Español"
@@ -641,16 +640,16 @@
                     on_release: app.toggle_timezone()
             BoxLayout:
                 orientation: 'horizontal'
-                spacing: 12
+                spacing: app.scale * 12
                 size_hint_y: None
-                height: 60
+                height: app.sy * 60
                 Label:
                     id: admin_backend_lbl
                     text: "Backend IP:"
                     font_size: app.scale * 20
                     bold: True
                     size_hint_x: None
-                    width: app.scale * 140
+                    width: app.sx * 140
                     halign: 'left'
                     valign: 'middle'
                     text_size: self.size
@@ -667,7 +666,7 @@
                     id: admin_test_btn
                     text: "PROBAR"
                     size_hint_x: None
-                    width: 120
+                    width: app.sx * 120
                     on_release: app.test_backend()
             Label:
                 id: admin_frontend_ip
@@ -675,7 +674,7 @@
                 font_size: app.scale * 18
                 color: 0.64, 0.70, 0.78, 1
                 size_hint_y: None
-                height: app.scale * 26
+                height: app.sy * 26
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -685,15 +684,15 @@
                 font_size: app.scale * 16
                 color: 0.95, 0.61, 0.07, 1
                 size_hint_y: None
-                height: app.scale * 28
+                height: app.sy * 28
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             GridLayout:
                 cols: 3
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint_y: None
-                height: app.scale * 225
+                height: app.sy * 225
                 AtmButton:
                     id: admin_change_pin
                     text: "CAMBIAR NIP"
@@ -739,14 +738,14 @@
         HeaderBar
         BoxLayout:
             orientation: 'vertical'
-            padding: [50, 30]
-            spacing: 12
+            padding: [app.sx * 50, app.sy * 30]
+            spacing: app.scale * 12
             Label:
                 text: app.t("frame_title")
                 font_size: app.scale * 28
                 bold: True
                 size_hint_y: None
-                height: app.scale * 45
+                height: app.sy * 45
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -755,15 +754,15 @@
                 font_size: app.scale * 16
                 color: 0.64, 0.70, 0.78, 1
                 size_hint_y: None
-                height: app.scale * 24
+                height: app.sy * 24
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             GridLayout:
                 cols: 2
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint_y: None
-                height: app.scale * 280
+                height: app.sy * 280
                 AtmButton:
                     text: app.t("frame_left_m")
                     on_release: app.frame_nudge("left", 10)
@@ -790,9 +789,9 @@
                     on_release: app.frame_nudge("bottom", -10)
             BoxLayout:
                 orientation: 'horizontal'
-                spacing: 12
+                spacing: app.scale * 12
                 size_hint_y: None
-                height: app.scale * 60
+                height: app.sy * 60
                 AtmButton:
                     text: app.t("frame_reset")
                     on_release: app.frame_reset()
@@ -808,37 +807,37 @@
         HeaderBar
         BoxLayout:
             orientation: 'vertical'
-            padding: [50, 20]
-            spacing: 12
+            padding: [app.sx * 50, app.sy * 20]
+            spacing: app.scale * 12
             Label:
                 id: saver_cfg_title
                 text: "Salvapantallas y Pantalla"
-                font_size: '28sp'
+                font_size: app.scale * 28
                 bold: True
                 size_hint_y: None
-                height: 45
+                height: app.sy * 45
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
             BoxLayout:
                 orientation: 'horizontal'
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint_y: None
-                height: 60
+                height: app.sy * 60
                 Label:
                     id: saver_start_lbl
                     text: "Iniciar salvapantallas:"
-                    font_size: '20sp'
+                    font_size: app.scale * 20
                     bold: True
                     size_hint_x: None
-                    width: 300
+                    width: app.sx * 300
                     halign: 'left'
                     valign: 'middle'
                     text_size: self.size
                 Label:
                     id: saver_value_lbl
                     text: "2m"
-                    font_size: '22sp'
+                    font_size: app.scale * 22
                     bold: True
                     color: 0.95, 0.61, 0.07, 1
                     halign: 'center'
@@ -846,9 +845,9 @@
                     text_size: self.size
             GridLayout:
                 cols: 5
-                spacing: 8
+                spacing: app.scale * 8
                 size_hint_y: None
-                height: 60
+                height: app.sy * 60
                 AtmButton:
                     id: saver_off_btn
                     text: "No"
@@ -867,23 +866,23 @@
                     on_release: root.set_saver(300)
             BoxLayout:
                 orientation: 'horizontal'
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint_y: None
-                height: 60
+                height: app.sy * 60
                 Label:
                     id: screenoff_lbl
                     text: "Apagar pantalla:"
-                    font_size: '20sp'
+                    font_size: app.scale * 20
                     bold: True
                     size_hint_x: None
-                    width: 300
+                    width: app.sx * 300
                     halign: 'left'
                     valign: 'middle'
                     text_size: self.size
                 Label:
                     id: screenoff_value_lbl
                     text: "No"
-                    font_size: '22sp'
+                    font_size: app.scale * 22
                     bold: True
                     color: 0.95, 0.61, 0.07, 1
                     halign: 'center'
@@ -891,9 +890,9 @@
                     text_size: self.size
             GridLayout:
                 cols: 5
-                spacing: 8
+                spacing: app.scale * 8
                 size_hint_y: None
-                height: 60
+                height: app.sy * 60
                 AtmButton:
                     id: screenoff_off_btn
                     text: "No"
@@ -915,12 +914,12 @@
                 size_hint_y: 1
             AnchorLayout:
                 size_hint_y: None
-                height: 78
+                height: app.sy * 78
                 CancelButton:
                     id: saver_cfg_back
                     text: "VOLVER"
                     size_hint: None, None
-                    size: 320, 58
+                    size: app.sx * 320, app.sy * 58
                     on_release: root.back()
 
 <AdminIpScreen>:
@@ -932,32 +931,32 @@
         Label:
             id: admin_ip_title
             text: "Configurar Backend IP"
-            font_size: '26sp'
+            font_size: app.scale * 26
             bold: True
             size_hint_y: None
-            height: 45
+            height: app.sy * 45
             halign: 'center'
             valign: 'middle'
             text_size: self.size
         Label:
             text: root.msg
-            font_size: '18sp'
+            font_size: app.scale * 18
             color: 0.95, 0.61, 0.07, 1
             size_hint_y: None
-            height: 30
+            height: app.sy * 30
             halign: 'center'
             valign: 'middle'
             text_size: self.size
         AnchorLayout:
             size_hint_y: None
-            height: 92
+            height: app.sy * 92
             Label:
                 text: root.value
-                font_size: '40sp'
+                font_size: app.scale * 40
                 bold: True
                 color: 0.067, 0.067, 0.067, 1
                 size_hint: None, None
-                size: 460, 70
+                size: app.sx * 460, app.sy * 70
                 halign: 'center'
                 valign: 'middle'
                 text_size: self.size
@@ -967,15 +966,15 @@
                     RoundedRectangle:
                         pos: self.pos
                         size: self.size
-                        radius: [8]
+                        radius: [app.scale * 8]
         AnchorLayout:
             size_hint_y: None
-            height: 262
+            height: app.sy * 262
             GridLayout:
                 cols: 3
-                spacing: 10
+                spacing: app.scale * 10
                 size_hint: None, None
-                size: 320, 262
+                size: app.sx * 320, app.sy * 262
                 NumKey:
                     text: "1"
                     on_release: root.append_digit("1")
@@ -1015,22 +1014,22 @@
                     on_release: root.append_dot()
         BoxLayout:
             orientation: 'horizontal'
-            spacing: 20
+            spacing: app.scale * 20
             size_hint_y: None
-            height: 78
+            height: app.sy * 78
             AnchorLayout:
                 EnterKey:
                     id: admin_ip_enter
                     text: "ENTRAR"
                     size_hint: None, None
-                    size: 320, 58
+                    size: app.sx * 320, app.sy * 58
                     on_release: root.submit()
             AnchorLayout:
                 PinCancelButton:
                     id: admin_ip_cancel
                     text: "CANCELAR"
                     size_hint: None, None
-                    size: 320, 58
+                    size: app.sx * 320, app.sy * 58
                     on_release: root.cancel()
         Widget:
             size_hint_y: 1

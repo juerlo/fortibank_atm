@@ -143,17 +143,24 @@ def _card_bg_tex():
 
 
 class ScreenBase(Screen):
+    """Base screen.
+
+    The background is drawn in the screen's *own* canvas. ``Screen`` is a
+    ``RelativeLayout``: Kivy lays children out at ``pos=(0, 0)`` and translates
+    the canvas by ``+self.pos``. A background rectangle must therefore use
+    *relative* coordinates ``(0, 0)`` -- using ``self.pos`` would render it at
+    twice the screen offset (the safe-area/frame bug: with margins the blue
+    canvas drifted away from the text).
+    """
+
     def on_kv_post(self, base_widget):
         self._bg_rect = None
         with self.canvas.before:
             Color(1, 1, 1, 1)
             self._bg_rect = Rectangle(
-                pos=self.pos, size=self.size, texture=_screen_bg_tex()
+                pos=(0, 0), size=self.size, texture=_screen_bg_tex()
             )
-        self.bind(
-            pos=lambda *a: setattr(self._bg_rect, 'pos', self.pos),
-            size=lambda *a: setattr(self._bg_rect, 'size', self.size),
-        )
+        self.bind(size=lambda *a: setattr(self._bg_rect, 'size', self.size))
 
 
 class PushButton(Button):
@@ -190,58 +197,63 @@ class ScreenInsert(ScreenBase):
 
     def build_cards(self, cards):
         app = App.get_running_app()
-        s = app.scale
+        sx, sy = app.sx, app.sy
+        s = app.scale            # fonts / radii stay uniform
         container = self.ids.card_container
         container.clear_widgets()
         for c in cards:
             num = c.get("num", "")
             formatted = " ".join(num[i:i+4] for i in range(0, len(num), 4))
 
-            W, H = int(320 * s), int(200 * s)
+            W, H = int(320 * sx), int(200 * sy)
             card = RelativeLayout(size_hint=(None, None), size=(W, H))
 
             # Background drawn by a child widget (relative coords — reliable for all cards)
             bg = Widget(size_hint=(None, None), pos=(0, 0), size=(W, H))
             with bg.canvas:
                 Color(0, 0, 0, 0.6)
-                RoundedRectangle(pos=(int(2*s), int(-6*s)), size=(int(316*s), H), radius=[int(15*s)])
+                RoundedRectangle(pos=(int(2 * sx), int(-6 * sy)),
+                                 size=(int(316 * sx), H), radius=[int(15 * s)])
                 Color(0.043, 0.059, 0.079, 1)
-                RoundedRectangle(pos=(0, 0), size=(W, H), radius=[int(15*s)])
+                RoundedRectangle(pos=(0, 0), size=(W, H), radius=[int(15 * s)])
                 Color(0.090, 0.125, 0.168, 1)
-                RoundedRectangle(pos=(0, int(78*s)), size=(W, int(122*s)), radius=[int(15*s), int(15*s), 0, 0])
+                RoundedRectangle(pos=(0, int(78 * sy)), size=(W, int(122 * sy)),
+                                 radius=[int(15 * s), int(15 * s), 0, 0])
                 Color(0.333, 0.333, 0.333, 1)
-                Line(rounded_rectangle=(0, 0, W, H, int(15*s)), width=1)
+                Line(rounded_rectangle=(0, 0, W, H, int(15 * s)), width=1)
 
             # .chip — 45x35, #d4af37, radius 6
-            chip = Widget(size_hint=(None, None), pos=(int(20*s), int(145*s)),
-                          size=(int(45*s), int(35*s)))
+            chip = Widget(size_hint=(None, None), pos=(int(20 * sx), int(145 * sy)),
+                          size=(int(45 * sx), int(35 * sy)))
             with chip.canvas:
                 Color(0.831, 0.686, 0.216, 1)
-                RoundedRectangle(pos=chip.pos, size=chip.size, radius=[int(6*s)])
+                RoundedRectangle(pos=chip.pos, size=chip.size, radius=[int(6 * s)])
                 Color(1, 1, 1, 0.30)
-                RoundedRectangle(pos=(chip.x + int(12*s), chip.y + int(8*s)),
-                                 size=(chip.width - int(16*s), chip.height - int(16*s)),
-                                 radius=[int(4*s)])
+                RoundedRectangle(pos=(chip.x + int(12 * sx), chip.y + int(8 * sy)),
+                                 size=(chip.width - int(16 * sx), chip.height - int(16 * sy)),
+                                 radius=[int(4 * s)])
 
             num_lbl = Label(
                 text=formatted, font_size=max(1, int(17 * s)), bold=True,
                 color=(1, 1, 1, 1), halign='left', valign='middle',
-                size_hint=(None, None), pos=(int(20*s), int(100*s)),
-                size=(int(280*s), int(24*s)), text_size=(int(280*s), int(24*s)),
+                size_hint=(None, None), pos=(int(20 * sx), int(100 * sy)),
+                size=(int(280 * sx), int(24 * sy)),
+                text_size=(int(280 * sx), int(24 * sy)),
             )
             name_lbl = Label(
                 text=c["name"].upper(), font_size=max(1, int(14 * s)),
                 color=(0.867, 0.867, 0.867, 1), halign='left', valign='middle',
-                size_hint=(None, None), pos=(int(20*s), int(66*s)),
-                size=(int(230*s), int(22*s)), text_size=(int(230*s), int(22*s)),
+                size_hint=(None, None), pos=(int(20 * sx), int(66 * sy)),
+                size=(int(230 * sx), int(22 * sy)),
+                text_size=(int(230 * sx), int(22 * sy)),
             )
             brand_img = Image(
                 source=os.path.join(
                     FRONTEND_DIR,
                     "visa.png" if c["brand"] == "VISA" else "mastercard.png",
                 ),
-                size_hint=(None, None), pos=(int(240*s), int(20*s)),
-                size=(int(60*s), int(40*s)), fit_mode="contain",
+                size_hint=(None, None), pos=(int(240 * sx), int(20 * sy)),
+                size=(int(60 * sx), int(40 * sy)), fit_mode="contain",
             )
             select_btn = Button(
                 size_hint=(None, None), pos=(0, 0), size=(W, H),
@@ -307,13 +319,20 @@ class ScreenResult(ScreenBase):
 
 
 class ScreenCardAnim(Screen):
-    """Full-screen card insertion / ejection animation (matches the HTML overlay)."""
+    """Full-screen card insertion / ejection animation (matches the HTML overlay).
+
+    The animation is authored in the fixed 1024x600 design space and drawn
+    through a ``Scale`` canvas transform, so it always fills the visible area
+    (the Manager is mapped per axis onto the safe rectangle).
+    """
     BG = (0.035, 0.231, 0.439, 1)  # #093b70
 
     def __init__(self, **kw):
         super().__init__(**kw)
         self._flash_event = None
         self._slot_on = True
+        self._scale_instr = None
+        self._design_root = None
         self._build_anim()
 
     def _toggle_slot(self, dt):
@@ -336,7 +355,17 @@ class ScreenCardAnim(Screen):
             self.slot_color.a = 1.0
 
     def _build_anim(self):
-        root = FloatLayout()
+        app = App.get_running_app()
+        sx, sy = app.sx, app.sy
+        # Design-space container: children keep their 1024x600 coordinates and
+        # the canvas transform maps them into the safe area (per axis).
+        root = FloatLayout(size_hint=(None, None), size=(1024 * sx, 600 * sy), pos=(0, 0))
+        with root.canvas.before:
+            PushMatrix()
+            self._scale_instr = Scale(sx, sy, 1)
+        with root.canvas.after:
+            PopMatrix()
+        self._design_root = root
 
         # background #093b70
         bg = Widget(size_hint=(None, None), size=(1024, 600))
@@ -383,6 +412,14 @@ class ScreenCardAnim(Screen):
         root.add_widget(slot)
         root.add_widget(self.title_lbl)
         self.add_widget(root)
+
+    def set_scale(self, sx, sy):
+        """Re-apply the safe-area scale after a frame adjustment."""
+        if self._design_root is None or self._scale_instr is None:
+            return
+        self._design_root.size = (1024 * sx, 600 * sy)
+        self._scale_instr.x = sx
+        self._scale_instr.y = sy
 
     def _make_card(self):
         card = RelativeLayout(size_hint=(None, None), size=(300, 480), pos=(362, -480))
@@ -565,12 +602,16 @@ class ScreenSaver(ScreenBase):
         self._build()
 
     def _build(self):
-        # Dark radial gradient backdrop
+        app = App.get_running_app()
+        sx, sy = app.sx, app.sy
+        s = app.scale
+        # Dark radial gradient backdrop. Relative coordinates (0, 0): the screen
+        # is a RelativeLayout, so self.pos would be applied twice.
         self._bg = Rectangle(
-            pos=self.pos, size=self.size,
+            pos=(0, 0), size=self.size,
             texture=_radial_texture((0.02, 0.10, 0.22), (0.0, 0.01, 0.03)))
         self.canvas.add(self._bg)
-        self.bind(pos=self._sync_bg, size=self._sync_bg)
+        self.bind(size=self._sync_bg)
 
         # Floating banknotes
         bill_imgs = [os.path.join(FRONTEND_DIR, f"{d}.png") for d in (50, 100, 200, 500)]
@@ -578,27 +619,31 @@ class ScreenSaver(ScreenBase):
             src = bill_imgs[i % len(bill_imgs)]
             if not os.path.exists(src):
                 continue
-            img = Image(source=src, size_hint=(None, None), size=(120, 51),
+            img = Image(source=src, size_hint=(None, None),
+                        size=(int(120 * sx), int(51 * sy)),
                         opacity=random.uniform(0.12, 0.28), allow_stretch=True)
-            img.pos = (random.uniform(0, 900), random.uniform(0, 560))
+            img.pos = (random.uniform(0, max(1.0, self.width - img.width)),
+                       random.uniform(0, max(1.0, self.height - img.height)))
             self.add_widget(img)
             self._bills.append([img, random.uniform(10, 26), random.uniform(-8, 8)])
 
         # Bouncing FortiBank logo
         self._logo = Factory.AtmButton(
-            text=("[b][color=f39c12][size=38]FortiBank[/size][/color] "
-                  "[b][color=ffffff][size=38]ATM[/size][/color][/b]"),
-            markup=True, size_hint=(None, None), size=(self.LOGO_W, self.LOGO_H),
+            text=self._logo_markup(s),
+            markup=True, size_hint=(None, None),
+            size=(int(self.LOGO_W * sx), int(self.LOGO_H * sy)),
             background_color=(0.05, 0.10, 0.18, 0.96))
         self._logo.pos = (self._logo_x, self._logo_y)
         self.add_widget(self._logo)
 
         # Pulsing hint
         self._hint = Label(
-            text=App.get_running_app().t("saver_hint"), font_size='18sp',
-            color=(1, 1, 1, 0.55), size_hint=(None, None), size=(700, 40),
-            halign='center', valign='middle', text_size=(700, 40))
-        self._hint.pos = (162, 100)
+            text=App.get_running_app().t("saver_hint"),
+            font_size=max(1, int(18 * s)), color=(1, 1, 1, 0.55),
+            size_hint=(None, None), size=(int(700 * sx), int(40 * sy)),
+            halign='center', valign='middle',
+            text_size=(int(700 * sx), int(40 * sy)))
+        self._hint.pos = (int((1024 - 700) / 2.0 * sx), int(100 * sy))
         self.add_widget(self._hint)
 
         # Full-screen invisible touch catcher: any tap dismisses the screensaver
@@ -608,11 +653,31 @@ class ScreenSaver(ScreenBase):
         self._dismiss.on_release = self._dismiss_now
         self.add_widget(self._dismiss)
 
+    @staticmethod
+    def _logo_markup(s):
+        size = max(1, int(38 * s))
+        return ("[b][color=f39c12][size={0}]FortiBank[/size][/color] "
+                "[b][color=ffffff][size={0}]ATM[/size][/color][/b]").format(size)
+
+    def apply_scale(self, sx, sy):
+        """Resize the decorative elements to the current safe-area scale."""
+        s = min(sx, sy)
+        try:
+            self._logo.text = self._logo_markup(s)
+            self._logo.size = (int(self.LOGO_W * sx), int(self.LOGO_H * sy))
+            self._hint.font_size = max(1, int(18 * s))
+            self._hint.size = (int(700 * sx), int(40 * sy))
+            self._hint.text_size = self._hint.size
+            self._hint.pos = (int((1024 - 700) / 2.0 * sx), int(100 * sy))
+            for img, _vy, _vx in self._bills:
+                img.size = (int(120 * sx), int(51 * sy))
+        except Exception:
+            pass
+
     def _dismiss_now(self, *a):
         App.get_running_app().dismiss_screensaver()
 
     def _sync_bg(self, *a):
-        self._bg.pos = self.pos
         self._bg.size = self.size
 
     def on_enter(self):
@@ -632,8 +697,8 @@ class ScreenSaver(ScreenBase):
         # Bounce the logo off the screen edges
         x = self._logo_x + self._vx * dt
         y = self._logo_y + self._vy * dt
-        maxx = max(0.0, self.width - self.LOGO_W)
-        maxy = max(0.0, self.height - self.LOGO_H)
+        maxx = max(0.0, self.width - self._logo.width)
+        maxy = max(0.0, self.height - self._logo.height)
         if x <= 0:
             x, self._vx = 0.0, abs(self._vx)
         elif x >= maxx:
@@ -645,18 +710,21 @@ class ScreenSaver(ScreenBase):
         self._logo_x, self._logo_y = x, y
         self._logo.pos = (x, y)
 
-        # Drift the banknotes upward, wrapping around
-        for img, vy, vx in self._bills:
+        # Drift the banknotes upward, wrapping inside the visible area (the
+        # screen no longer clips them, so they must never leave it).
+        for bill in self._bills:
+            img, vy, vx = bill
             ix, iy = img.pos
-            iy += vy * dt
+            span_y = max(1.0, self.height - img.height)
+            span_x = max(1.0, self.width - img.width)
+            iy = (iy + vy * dt) % span_y
             ix += vx * dt
-            if iy > self.height + 60:
-                iy = -60.0
-                ix = random.uniform(0, max(1.0, self.width - 120))
-            if ix < -130:
-                ix = self.width + 10.0
-            elif ix > self.width + 10:
-                ix = -130.0
+            if ix < 0:
+                ix = 0.0
+                bill[2] = abs(vx)
+            elif ix > span_x:
+                ix = span_x
+                bill[2] = -abs(vx)
             img.pos = (ix, iy)
 
         # Pulse the hint
@@ -765,10 +833,11 @@ class OOSOverlay(FloatLayout):
             Color(0.043, 0.290, 0.561, 1.0)  # solid blue, fully opaque
             self._bg = Rectangle(pos=self.pos, size=self.size)
         self.bind(pos=self._sync_bg, size=self._sync_bg)
-        # Big message
+        # Big message (positioned inside the visible area, not the bezel).
         self.label = Label(
             text="", font_size='80sp', bold=True, color=(1, 1, 1, 1),
-            halign='center', valign='middle',
+            halign='center', valign='middle', size_hint=(None, None),
+            size=self.size, pos=(0, 0), text_size=self.size,
         )
         self.add_widget(self.label)
         # Logo copy (top-left) so the secret admin menu (5 taps) still works.
@@ -780,14 +849,34 @@ class OOSOverlay(FloatLayout):
         )
         self._logo.bind(on_release=lambda *a: App.get_running_app().register_admin_tap())
         self.add_widget(self._logo)
+        self._safe_rect = None
         Window.bind(size=self._sync_window)
         self._sync_window()
+
+    def set_safe_rect(self, x, y, w, h, scale):
+        """Keep the overlay's text/logo inside the visible (safe) area.
+
+        The overlay itself stays full-window so it blocks every touch, but its
+        content must not be drawn under the physical frame (bezel).
+        """
+        self._safe_rect = (x, y, w, h)
+        logo_h = max(1, int(self.LOGO_H * scale))
+        self.label.font_size = max(1, int(80 * scale))
+        self.label.size = (w, max(1, h - logo_h))
+        self.label.pos = (x, y)
+        self.label.text_size = self.label.size
+        self._logo.font_size = max(1, int(28 * scale))
+        self._logo.size = (min(w, max(1, int(340 * scale))), max(1, int(48 * scale)))
+        self._logo.pos = (x + max(1, int(30 * scale)), y + h - logo_h + max(1, int(8 * scale)))
 
     def _sync_window(self, *a):
         self.size = Window.size
         self.pos = (0, 0)
         self._bg.size = self.size
-        self._logo.pos = (30, self.height - self.LOGO_H + 8)
+        if self._safe_rect is None:
+            self.label.size = self.size
+            self.label.text_size = self.size
+            self._logo.pos = (30, self.height - self.LOGO_H + 8)
 
     def _sync_bg(self, *a):
         self._bg.pos = self.pos
@@ -813,7 +902,10 @@ class FortiBankApp(App):
     SCREENSAVER_SKIP = {'processing', 'dispensing', 'cardanim', 'screensaver'}
     # Screens where the out-of-service overlay steps aside so the secret admin
     # menu stays reachable while the backend is down.
-    ADMIN_SCREENS = {'adminpin', 'adminmenu', 'adminip', 'savercfg'}
+    ADMIN_SCREENS = {'adminpin', 'adminmenu', 'adminip', 'savercfg', 'framecfg'}
+    # The visible area may never shrink below this (the UI would collapse).
+    MIN_SAFE_W = 480
+    MIN_SAFE_H = 280
     # Backend keep-alive: how often (seconds) to re-check backend reachability.
     KEEPALIVE_INTERVAL = 5
     # How often (seconds) to refresh the card catalogue from the backend.
@@ -847,9 +939,10 @@ class FortiBankApp(App):
         self.oos_overlay = OOSOverlay()
         self.oos_label = self.oos_overlay.label
         self.oos_overlay.opacity = 0
-        # Safe-area transform state (window -> design space mapping).
-        self._tx = self._ty = 0
-        self._sx = self._sy = 1.0
+        # Safe-area state: the visible rectangle (frame margins) and the
+        # pending relayout scheduled after each change.
+        self._safe_rect = (0, 0, Window.width, Window.height)
+        self._relayout_event = None
         self.manager = Manager()
         # Apply the safe-area (frame margins) once the window is up, and
         # re-apply on resize so the UI stays inside the visible region.
@@ -1013,13 +1106,14 @@ class FortiBankApp(App):
             bills.extend([denom] * count)
             remaining %= denom
 
+        sx, sy = self.sx, self.sy
         for idx, denom in enumerate(bills):
             img_path = os.path.join(FRONTEND_DIR, f"{denom}.png")
             if os.path.exists(img_path):
                 bill = Image(
                     source=img_path,
                     size_hint=(None, None),
-                    size=(364, 155),
+                    size=(int(364 * sx), int(155 * sy)),
                     opacity=0
                 )
                 area.add_widget(bill)
@@ -1042,7 +1136,7 @@ class FortiBankApp(App):
                 pos_anim.start(bill)
 
         Clock.schedule_once(
-            lambda dt: self._show_result(True, "Dinero entregado", data),
+            lambda dt: self._show_result(True, self.t("res_delivered"), data),
             3.5
         )
 
@@ -1284,21 +1378,27 @@ class FortiBankApp(App):
             pass
 
     # ------------------------------------------------------------------
-    # Resolution scaling (Option A: fixed 1024x600 design, scaled to the
-    # actual window size). All fixed pixel sizes in the KV file are wrapped
-    # with app.s(N) and all font sizes with app.sfont(N).
+    # Resolution / safe-area scaling.
+    #
+    # The UI is authored for a fixed 1024x600 design and the Manager is resized
+    # to fill the visible area (window minus the frame margins). The mapping is
+    # *per axis* (``sx``/``sy``): a margin must only cut its own edge,
+    # so a left margin does not shrink the height (no extra top/bottom bands).
+    # Fixed widths in the KV use ``app.sx * N``, heights ``app.sy * N``; text,
+    # radii and spacing use ``app.scale`` (the smaller factor) so they stay
+    # proportional. These are reactive bindings -- do NOT use a helper call like
+    # ``app.s(N)`` in KV: a method call is evaluated once and never rebound.
     # ------------------------------------------------------------------
     _RESOLUTION_PRESETS = [(1024, 600), (1920, 1080)]
 
     scale = NumericProperty(1.0)
-
-    def s(self, px):
-        """Scale a fixed pixel size to the current window width."""
-        return int(px * self.scale)
-
-    def sfont(self, px):
-        """Scale a fixed font size (in sp) to the current window width."""
-        return str(int(px * self.scale)) + 'sp'
+    # Independent design->safe-area factors. Each frame margin must only affect
+    # its own axis (a left margin must not create a top/bottom band), so the UI
+    # is mapped onto the safe rectangle per axis instead of being uniformly
+    # scaled. ``scale`` (the smaller of the two) is used for text, radii and
+    # spacing so they stay uniform.
+    sx = NumericProperty(1.0)
+    sy = NumericProperty(1.0)
 
     # ------------------------------------------------------------------
     # Safe area / frame margins: the physical frame covers the outer edges
@@ -1313,23 +1413,84 @@ class FortiBankApp(App):
                 return 0
         return g("safe_left"), g("safe_top"), g("safe_right"), g("safe_bottom")
 
-    def _apply_safe_area(self):
+    def _apply_safe_area(self, *args):
         m = getattr(self, "manager", None)
         if m is None:
             return
         l, t, r, b = self._safe_margins()
         safe_w = max(1, Window.width - l - r)
         safe_h = max(1, Window.height - t - b)
-        # Uniform scale keeps the original 1024x600 proportions (no squish).
-        s = min(safe_w / 1024.0, safe_h / 600.0)
-        sw, sh = int(1024 * s), int(600 * s)
-        ox = int(l + (safe_w - sw) / 2)
-        oy = int(b + (safe_h - sh) / 2)
+        # Map the 1024x600 design onto the visible rectangle per axis: a margin
+        # only cuts its own edge (a left margin does not shrink the height), so
+        # there are no extra top/bottom (or left/right) bands.
+        sx = safe_w / 1024.0
+        sy = safe_h / 600.0
         m.size_hint = (None, None)
-        m.size = (sw, sh)
-        m.pos = (ox, oy)
-        self.scale = s
+        m.size = (safe_w, safe_h)
+        m.pos = (l, b)
+        self.sx, self.sy = sx, sy
+        self.scale = min(sx, sy)      # text/radii/spacing stay proportional
+        self._safe_rect = (l, b, safe_w, safe_h)
+        # Everything that is authored outside the KV (card carousel, card
+        # animation, screensaver, out-of-service overlay) must follow the new
+        # safe area too, otherwise it keeps drawing over the black bezel.
         self._rebuild_cards()
+        self._apply_scale_to_screens()
+        self._schedule_relayout()
+
+    def _apply_scale_to_screens(self):
+        try:
+            self.root.get_screen('cardanim').set_scale(self.sx, self.sy)
+        except Exception:
+            pass
+        try:
+            self.root.get_screen('screensaver').apply_scale(self.sx, self.sy)
+        except Exception:
+            pass
+        try:
+            ox, oy, sw, sh = self._safe_rect
+            self.oos_overlay.set_safe_rect(ox, oy, sw, sh, self.scale)
+        except Exception:
+            pass
+
+    def _schedule_relayout(self):
+        # Coalesce the synchronous + queued layouts triggered by a nudge.
+        if self._relayout_event is not None:
+            self._relayout_event.cancel()
+        self._relayout_event = Clock.schedule_once(self._force_relayout, -1)
+
+    def _force_relayout(self, *args):
+        """Lay the visible screen out again for the current safe area.
+
+        Kivy re-lays-out the ScreenManager on resize, but a screen can keep a
+        stale child layout (fixed sizes fit the old, larger rectangle) which
+        made text/buttons spill over the frame. Doing it explicitly here makes
+        the frame adjustment deterministic instead of depending on which screen
+        happened to be visible when the margins changed.
+        """
+        self._relayout_event = None
+        m = getattr(self, "manager", None)
+        if m is None:
+            return
+        try:
+            m.do_layout()
+        except Exception:
+            pass
+        try:
+            scr = m.current_screen
+        except Exception:
+            scr = None
+        if scr is None:
+            return
+        stack = [scr]
+        while stack:
+            w = stack.pop()
+            if hasattr(w, 'do_layout'):
+                try:
+                    w.do_layout()
+                except Exception:
+                    pass
+            stack.extend(w.children)
 
     def _rebuild_cards(self):
         try:
@@ -1340,7 +1501,7 @@ class FortiBankApp(App):
             pass
 
     def open_frame_cfg(self):
-        self.root.current = 'framecfg'
+        self.go_to('framecfg', beep=False)
 
     def frame_nudge(self, side, delta):
         key = "safe_" + side
@@ -1349,6 +1510,14 @@ class FortiBankApp(App):
         except Exception:
             cur = 0
         cur = max(0, cur + delta)
+        # Refuse margins that would swallow the visible area: the ATM must stay
+        # usable, and a (nearly) empty safe area made the whole UI collapse.
+        vals = dict(zip(("left", "top", "right", "bottom"), self._safe_margins()))
+        vals[side] = cur
+        if Window.width - vals["left"] - vals["right"] < self.MIN_SAFE_W:
+            return
+        if Window.height - vals["top"] - vals["bottom"] < self.MIN_SAFE_H:
+            return
         self.settings.set(key, str(cur), persist=True)
         self._apply_safe_area()
 

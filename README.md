@@ -23,7 +23,12 @@ on-device configuration.
 - **Bill dispensing animation** - animated 500/200/100/50 bills with sound
 - **Result screen** - success/decline, available balance and ISO 8583 traffic
 - **Card ejection** - return to start or eject the card
-- **Secret admin menu** - language, timezone, backend IP, PIN, reboot / power-off
+- **Secret admin menu** - language, timezone, backend IP, PIN, frame (bezel)
+  calibration, resolution, mute, balance reset, reboot / power-off
+- **Frame calibration (MARCO)** - nudge each bezel edge independently; the UI
+  (canvas *and* text) is mapped onto the visible area per axis, so a margin
+  only cuts its own edge (no phantom bands) - see
+  [docs/FRAME_ADJUST.md](docs/FRAME_ADJUST.md)
 - **Bilingual UI** - Spanish / English
 - **Screensaver & display-off** - configurable burn-in protection
 - **Touch-first** - on-screen numeric keypads (PIN and backend IP)
@@ -159,6 +164,12 @@ backend_ip=192.168.241.11
 admin_pin=0000
 saver_timeout=120
 screenoff_timeout=0
+muted=0
+resolution=1024x600
+safe_left=0
+safe_top=0
+safe_right=0
+safe_bottom=0
 ```
 
 - `language` - `es` or `en`
@@ -167,6 +178,14 @@ screenoff_timeout=0
 - `admin_pin` - 4-digit PIN for the secret menu
 - `saver_timeout` - seconds before the screensaver (0 = off)
 - `screenoff_timeout` - seconds before the display blanks (0 = off)
+- `muted` - `1` mutes all sound (app-level + hardware DAC), `0` = sound on
+- `resolution` - preset applied on next boot (`1024x600` or `1920x1080`)
+- `safe_left` / `safe_top` / `safe_right` / `safe_bottom` - frame (bezel)
+  margins in pixels; they define the visible area. Each margin only cuts its own
+  edge. See [docs/FRAME_ADJUST.md](docs/FRAME_ADJUST.md).
+
+All of them are normally edited from the admin menu; the file is written on
+every change and read on start.
 
 The backend URL can also be overridden with the `ATM_BACKEND_URL` environment
 variable, which takes precedence over `backend_ip`.
@@ -184,12 +203,37 @@ The menu lets you configure:
 - **Timezone** - Mexico City (`America/Mexico_City`) / Miami (`America/New_York`)
 - **Backend IP** - on-screen numeric keypad (0-9 and dot); used to build
   `http://<ip>:8000/api/withdraw`. **TEST** checks connectivity to the backend.
+  The line under it shows this frontend's own IP/hostname.
 - **Change PIN** - set a new 4-digit admin PIN (entered twice to confirm)
+- **Screensaver** - idle timeout and display-off delay (see below)
+- **Mute** - `SILENCIO` toggles all sound (app + hardware)
+- **Reset balances** - `RESET SALDOS` restores every card to its
+  `default_balance` (via `POST /api/cards/{card_number}/reset`)
+- **Resolution** - `RESOLUCIÓN` cycles through the presets the connected display
+  supports; applied on next boot
+- **Frame** - `MARCO` opens the bezel calibration screen (see below)
 - **Reboot** / **Power Off** - restart or shut down the device
 
 Changes are saved automatically when you close the menu (**CERRAR**) - there is no
 separate save button. All settings are persisted to **`settings.txt`** and reloaded
 on startup. `settings.txt` is gitignored because it stores the admin PIN.
+
+---
+
+## Frame adjustment (MARCO)
+
+The physical frame of the panel can cover part of the screen. **MARCO** lets you
+calibrate the visible area in 10 px steps per edge (`Izq`/`Der`/`Arr`/`Ab`,
+`−` adds a margin, `+` removes it; **RESETEAR** goes back to full screen).
+
+The UI is **mapped onto the visible rectangle per axis**: adding a left margin
+only removes width (the UI keeps the full height), so there are no extra bands
+on the other edges. The blue canvas and the text always move together, and text
+stays proportional (`scale = min(sx, sy)`). A nudge that would leave less than
+480x280 of visible area is ignored.
+
+Full details (geometry, internals, how to verify a calibration, troubleshooting):
+**[docs/FRAME_ADJUST.md](docs/FRAME_ADJUST.md)**.
 
 ---
 

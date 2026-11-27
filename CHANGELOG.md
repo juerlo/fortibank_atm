@@ -32,10 +32,11 @@ All notable changes to this project are documented here.
 - Frontend: Admin menu has a "MARCO" (Frame) button that opens a frame-adjustment
   screen. The physical frame/bezel covers the screen edges; the safe-area margins
   (`safe_left/top/right/bottom` in `settings.txt`) define the visible region. The
-  Manager is resized to a uniform-scaled (proportions kept) rectangle centered in
-  the safe area; a reactive `scale` factor resizes fonts/buttons/cards live. The
-  top bar, text, orange line, buttons and carousel cards all shrink and recenter
-  when a margin is nudged. Margins persist and are re-applied on every start.
+  UI is mapped onto that rectangle per axis (`app.sx` / `app.sy`, text uses
+  `min(sx, sy)`), so a margin only cuts its own edge and the canvas, text,
+  buttons and cards always move together. Nudges are applied live in 10 px steps,
+  clamped to a 480x280 minimum visible area, and persist across restarts. See
+  `docs/FRAME_ADJUST.md`.
 - Frontend: tap the header clock 5 times to turn the display off immediately
   (any touch wakes it).
 - Frontend: the card carousel is now loaded from the backend
@@ -51,8 +52,19 @@ All notable changes to this project are documented here.
 - `docs/DEPLOYMENT.md`: full procedure for syncing changes to the frontend
   (Orange Pi `192.168.210.8`) and backend (Docker container `192.168.241.11`),
   with verification and troubleshooting.
+- `docs/FRAME_ADJUST.md`: how the bezel/safe-area calibration works (geometry,
+  per-axis mapping, internals, how to verify a calibration, troubleshooting);
+  the README now documents every `settings.txt` key and admin-menu action, and
+  CONTRIBUTING the KV scaling rules.
 
 ### Changed
+- Frontend: frame margins now affect **only their own edge**. The 1024x600
+  design is mapped onto the visible rectangle **per axis** (`sx = safe_w/1024`,
+  `sy = safe_h/600`) instead of being uniformly scaled and centered, so a left
+  margin no longer creates extra top/bottom bands (and a top margin no longer
+  creates left/right bands). Fixed widths/heights in the KV use `app.sx` /
+  `app.sy`; text, radii and spacing keep using `app.scale` (= `min(sx, sy)`) so
+  they stay proportional.
 - Frontend: the "Fuera de Servicio" / "Out of Service" overlay now steps aside
   for the screensaver — the screensaver still runs while out of service, and
   the message reappears as soon as the screensaver is dismissed.
@@ -77,6 +89,41 @@ All notable changes to this project are documented here.
   units, YAML).
 
 ### Fixed
+- Frontend: **frame adjustment (MARCO): the blue canvas no longer drifts away from
+  the text when a margin is set.** Real root cause: the screen background was
+  drawn in the screen's own canvas with absolute coordinates
+  (`Rectangle(pos: self.pos)`). A `Screen` is a `RelativeLayout`, which lays its
+  children out at `(0, 0)` and translates its canvas by **+self.pos**, so the
+  background was rendered at *twice* the offset (with `safe_left=40` the blue
+  area started at x=80 while the text started at 40 — invisible with all margins
+  at 0, which is why RESETEAR looked fine and any "Izq −" did not). All screen
+  backgrounds (every `ScreenBase` plus the screensaver) now use relative
+  coordinates `(0, 0)` and only bind their size.
+- Frontend: **frame adjustment now moves and scales the whole UI, not just the
+  blue canvas.** Two further root causes:
+  1. the KV sizes/fonts were written with helper calls (`app.s(N)` /
+     `app.sfont(N)`); Kivy evaluates a kv expression once and only rebinds
+     *properties*, so a method call kept the 1024x600 design values forever and
+     the text/buttons never shrank with the safe area. Every fixed size/font is
+     now a reactive binding (`app.sx` / `app.sy` for widths/heights,
+     `app.scale` for text, radii and spacing).
+  2. the safe area only resized the `ScreenManager`; screens with fixed-size
+     content (pin, menu, amount, result, admin screens) overflowed the smaller
+     rectangle whenever the frame margins grew, painting text/buttons over the
+     black bezel. All screens are scale-aware now and the visible screen is
+     re-laid out explicitly after every geometry change.
+- Frontend: the card insertion/ejection animation, the screensaver decorations
+  (logo, hint, banknotes) and the out-of-service overlay text/logo now follow
+  the safe area instead of using absolute 1024x600 coordinates; the floating
+  banknotes bounce inside the visible area (they used to drift over the bezel).
+- Frontend: the dispensing bill images scale with the safe area (were 364x155).
+- Frontend: frame margins are clamped so the visible area can never become
+  smaller than 480x280 (nudging further is ignored) — a tiny/empty safe area
+  used to collapse the entire UI.
+- Frontend: the Frame screen (`framecfg`) is treated as an admin screen (the
+  out-of-service overlay steps aside) and is entered through `go_to()`.
+- Frontend: `"Dinero entregado"` is now translated (`res_delivered`) instead of
+  being hardcoded in `main.py`.
 - Frontend: waking from screen-off (DPMS standby) no longer dismisses the
   screensaver in the same tap — the wake tap only wakes the display, so the
   screensaver keeps animating and the next tap dismisses it (fixes the frozen

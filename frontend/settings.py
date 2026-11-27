@@ -49,6 +49,7 @@ TRANSLATIONS = {
     "disp_take": ("Por favor, tome su efectivo", "Please take your cash"),
     "res_success": ("Operación Exitosa", "Operation Successful"),
     "res_declined": ("Operación Declinada", "Operation Declined"),
+    "res_delivered": ("Dinero entregado", "Cash dispensed"),
     "res_balance": ("Saldo Disponible: $%s MXN", "Available Balance: $%s MXN"),
     "iso_traffic": ("Tráfico SASE Inspeccionado", "SASE Traffic Inspected"),
 
